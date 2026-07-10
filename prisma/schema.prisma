@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model GrassProduct {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  description      String
+  shortDescription String
+  category         String
+  pricePerM2       Int
+  fiberHeight      String
+  density          String
+  toneColor        String
+  guarantee        String
+  badge            String?
+  badgeType        String?
+  petFriendly      Boolean  @default(false)
+  childFriendly    Boolean  @default(false)
+  sportSuitable    Boolean  @default(false)
+  available        Boolean  @default(true)
+  featured         Boolean  @default(false)
+  images           String[]
+  uses             String[]
+  availableColors  String[]
+  availableHeights String[]
+  benefits         String[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  leads            Lead[]
+  reviews          Review[]
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  description     String
+  category        String
+  location        String
+  metersInstalled Int
+  grassUsed       String
+  beforeImages    String[]
+  afterImages     String[]
+  tags            String[]
+  published       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}
+
+model Lead {
+  id                  String        @id @default(cuid())
+  name                String
+  phone               String
+  email               String?
+  spaceType           String?
+  squareMeters        Float?
+  city                String?
+  installationNeeded  Boolean       @default(false)
+  productId           String?
+  product             GrassProduct? @relation(fields: [productId], references: [id])
+  status              LeadStatus    @default(NEW)
+  notes               String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+}
+
+model Review {
+  id          String        @id @default(cuid())
+  name        String
+  location    String?
+  rating      Int
+  text        String
+  projectType String?
+  productId   String?
+  product     GrassProduct? @relation(fields: [productId], references: [id])
+  published   Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUOTED
+  CLOSED
+  LOST
+}
