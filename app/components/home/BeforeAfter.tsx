@@ -1,68 +1,22 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Ruler } from "lucide-react";
 import { projects } from "@/app/lib/data";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
 
-function BeforeAfterSlider({ project }: { project: (typeof projects)[0] }) {
-  const [sliderPos, setSliderPos] = useState(50);
-  const [dragging, setDragging] = useState(false);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!dragging) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    setSliderPos((x / rect.width) * 100);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.touches[0].clientX - rect.left, rect.width));
-    setSliderPos((x / rect.width) * 100);
-  };
-
+function ProjectPhoto({ project }: { project: (typeof projects)[0] }) {
   return (
-    <div
-      className="relative h-72 cursor-col-resize select-none overflow-hidden rounded-xl sm:h-80"
-      onMouseMove={handleMouseMove}
-      onMouseDown={() => setDragging(true)}
-      onMouseUp={() => setDragging(false)}
-      onMouseLeave={() => setDragging(false)}
-      onTouchMove={handleTouchMove}
-    >
-      {/* After (base) */}
-      <div className="absolute inset-0 bg-grass-200 flex items-center justify-center text-8xl">
-        🌿
-      </div>
-      {/* Label after */}
-      <span className="absolute right-3 top-3 rounded-full bg-brand-primary px-3 py-1 text-xs font-semibold text-white">
-        Después
-      </span>
-
-      {/* Before (clipped) */}
-      <div
-        className="absolute inset-0 bg-stone-300 flex items-center justify-center text-8xl overflow-hidden"
-        style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
-      >
-        🏚️
-      </div>
-      {/* Label before */}
-      <span className="absolute left-3 top-3 rounded-full bg-stone-700 px-3 py-1 text-xs font-semibold text-white">
-        Antes
-      </span>
-
-      {/* Divider line */}
-      <div
-        className="absolute top-0 bottom-0 w-0.5 bg-white shadow-lg"
-        style={{ left: `${sliderPos}%` }}
-      >
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-md">
-          <span className="text-xs font-bold text-stone-700">⇔</span>
-        </div>
-      </div>
+    <div className="relative h-72 overflow-hidden rounded-xl bg-grass-100 sm:h-80">
+      {project.afterImages[0] && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={project.afterImages[0]}
+          alt={project.title}
+          className="h-full w-full object-cover"
+        />
+      )}
     </div>
   );
 }
@@ -81,10 +35,10 @@ export default function BeforeAfter() {
         >
           <span className="badge-green mb-3 inline-block">Proyectos reales</span>
           <h2 className="mt-2 text-3xl font-bold text-stone-900 sm:text-4xl">
-            Antes y después
+            Proyectos instalados
           </h2>
           <p className="mt-4 text-stone-500">
-            Arrastra el deslizador para ver la transformación.
+            Espacios reales transformados con grama sintética Decorgrass.
           </p>
         </motion.div>
 
@@ -98,7 +52,7 @@ export default function BeforeAfter() {
               transition={{ delay: i * 0.1 }}
               className="space-y-4"
             >
-              <BeforeAfterSlider project={project} />
+              <ProjectPhoto project={project} />
               <div>
                 <h3 className="font-semibold text-stone-900">{project.title}</h3>
                 <div className="mt-1.5 flex flex-wrap gap-3 text-xs text-stone-500">

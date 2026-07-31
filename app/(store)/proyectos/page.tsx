@@ -29,16 +29,16 @@ export default function ProyectosPage() {
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-2">
           {projects.map((project) => (
             <div key={project.id} className="card overflow-hidden group">
-              {/* Before/After visual */}
-              <div className="grid grid-cols-2 h-56">
-                <div className="relative flex items-center justify-center bg-stone-200">
-                  <span className="text-7xl">🏚️</span>
-                  <span className="absolute top-2 left-2 rounded-full bg-stone-700 px-2 py-0.5 text-xs font-semibold text-white">Antes</span>
-                </div>
-                <div className="relative flex items-center justify-center bg-grass-100">
-                  <span className="text-7xl">🌿</span>
-                  <span className="absolute top-2 right-2 rounded-full bg-brand-primary px-2 py-0.5 text-xs font-semibold text-white">Después</span>
-                </div>
+              {/* Photo */}
+              <div className="relative h-56 bg-grass-100">
+                {project.afterImages[0] && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={project.afterImages[0]}
+                    alt={project.title}
+                    className="h-full w-full object-cover"
+                  />
+                )}
               </div>
               <div className="p-5">
                 <span className="badge-stone mb-2 inline-block">{project.category}</span>
