@@ -1,13 +1,48 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, useInView, animate } from "framer-motion";
 import { MessageCircle, ChevronDown, Play } from "lucide-react";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
 
+const STATS = [
+  { value: 500, suffix: "+", label: "Proyectos Completados" },
+  { value: 100000, suffix: "+ m²", label: "Instalados" },
+  { value: 10, suffix: "+", label: "Años de Experiencia" },
+  { value: 100, suffix: "%", label: "Clientes Satisfechos" },
+];
+
+function StatCounter({ value, suffix, label }: (typeof STATS)[number]) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(0, value, {
+      duration: 1.6,
+      ease: "easeOut",
+      onUpdate: (v) => setDisplay(Math.round(v)),
+    });
+    return controls.stop;
+  }, [inView, value]);
+
+  return (
+    <div ref={ref} className="text-center">
+      <div className="text-3xl font-bold text-brand-primary sm:text-4xl">
+        {display.toLocaleString("es-CO")}
+        {suffix}
+      </div>
+      <div className="mt-1 text-sm text-stone-500">{label}</div>
+    </div>
+  );
+}
+
 export default function Hero() {
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen">
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
       {/* Background */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -117,6 +152,16 @@ export default function Hero() {
       >
         <ChevronDown className="h-6 w-6 text-white/60" />
       </motion.div>
+    </div>
+
+      {/* Stats strip, overlapping the bottom edge */}
+      <div className="absolute inset-x-0 -bottom-10 z-20 hidden justify-center px-4 sm:flex">
+        <div className="grid w-full max-w-3xl grid-cols-4 gap-4 rounded-2xl bg-white p-6 shadow-2xl">
+          {STATS.map((s) => (
+            <StatCounter key={s.label} {...s} />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

@@ -6,14 +6,15 @@ import { categories } from "@/app/lib/data";
 
 export default function CategoryBar() {
   return (
-    <section className="border-b border-stone-100 bg-white py-6">
+    <section className="border-b border-stone-100 bg-white py-6 sm:pt-20">
       <div className="container-max px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide sm:justify-center">
           {categories.map((cat, i) => (
             <motion.div
               key={cat.id}
               initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
               transition={{ delay: i * 0.05 }}
             >
               <Link

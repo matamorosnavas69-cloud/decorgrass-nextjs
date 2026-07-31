@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Menu, X, MessageCircle, Search, Leaf } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,11 +18,14 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+  const hasDarkHero = pathname === "/";
+  const [scrolledState, setScrolledState] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const scrolled = !hasDarkHero || scrolledState;
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
+    const handler = () => setScrolledState(window.scrollY > 20);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
