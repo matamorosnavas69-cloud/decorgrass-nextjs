@@ -39,9 +39,16 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         {/* Image */}
         <Link href={`/producto/${product.slug}`} className="block">
           <div className="relative h-56 overflow-hidden bg-grass-50">
-            <div className="flex h-full items-center justify-center text-7xl transition-transform duration-500 group-hover:scale-110">
-              🌿
-            </div>
+            {product.images[0] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={product.images[0]}
+                alt={product.name}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-7xl">🌿</div>
+            )}
 
             {/* Badge */}
             {product.badge && (
