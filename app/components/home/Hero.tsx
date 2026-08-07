@@ -2,9 +2,53 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView, animate } from "framer-motion";
+import { motion, AnimatePresence, useInView, animate } from "framer-motion";
 import { MessageCircle, ChevronDown, Play } from "lucide-react";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
+
+const HERO_IMAGES = ["/hero/hero-1.png"];
+
+function HeroCarousel() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (HERO_IMAGES.length < 2) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % HERO_IMAGES.length), 6000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <>
+      <AnimatePresence>
+        <motion.div
+          key={index}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2 }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url('${HERO_IMAGES[index]}')` }}
+        />
+      </AnimatePresence>
+
+      {HERO_IMAGES.length > 1 && (
+        <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+          {HERO_IMAGES.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setIndex(i)}
+              aria-label={`Imagen ${i + 1}`}
+              className={`h-1.5 rounded-full transition-all ${
+                i === index ? "w-6 bg-white" : "w-1.5 bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
 
 const STATS = [
   { value: 500, suffix: "+", label: "Proyectos Completados" },
@@ -43,14 +87,9 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen">
     <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-      {/* Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80')",
-        }}
-      />
+      {/* Background carousel */}
+      <HeroCarousel />
+
       {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
 
