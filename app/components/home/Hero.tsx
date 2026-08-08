@@ -6,7 +6,7 @@ import { motion, AnimatePresence, useInView, animate } from "framer-motion";
 import { MessageCircle, ChevronDown, Play } from "lucide-react";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
 
-const HERO_IMAGES = ["/hero/hero-1.png"];
+const HERO_IMAGES = ["/hero/hero-1.png", "/hero/hero-2.png", "/hero/hero-3.png"];
 
 function HeroCarousel() {
   const [index, setIndex] = useState(0);
