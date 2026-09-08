@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { solutions } from "@/app/lib/data";
@@ -36,10 +37,15 @@ export default function Solutions() {
               <Link href={sol.href} className="group block">
                 <div className="card overflow-hidden">
                   <div className="relative h-40 overflow-hidden bg-grass-100">
-                    <div className="absolute inset-0 flex items-center justify-center text-6xl">
-                      {sol.icon}
-                    </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                    <Image
+                      src={sol.image}
+                      alt={sol.title}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                    <span className="absolute bottom-2 left-3 text-3xl drop-shadow">{sol.icon}</span>
                   </div>
                   <div className="p-5">
                     <h3 className="mb-1.5 font-semibold text-stone-900 group-hover:text-brand-primary transition-colors">

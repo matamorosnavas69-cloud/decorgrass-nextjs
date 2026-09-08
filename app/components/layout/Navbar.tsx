@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Menu, X, MessageCircle, Search, Leaf } from "lucide-react";
+import { Menu, X, MessageCircle, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/app/lib/utils";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
@@ -42,9 +43,7 @@ export default function Navbar() {
       <nav className="container-max flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-primary">
-            <Leaf className="h-5 w-5 text-white" />
-          </div>
+          <Image src="/logo-dg.png" alt="Decorgrass" width={32} height={32} className="h-8 w-8 rounded-lg" />
           <span className={cn("font-bold", scrolled ? "text-stone-900" : "text-white drop-shadow")}>
             Decor<span className="text-brand-light">grass</span>
           </span>

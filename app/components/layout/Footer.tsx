@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { MessageCircle, Leaf, Mail, MapPin } from "lucide-react";
+import Image from "next/image";
+import { MessageCircle, Mail, MapPin } from "lucide-react";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
 
 export default function Footer() {
@@ -12,9 +13,7 @@ export default function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="mb-4 flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-primary">
-                <Leaf className="h-5 w-5 text-white" />
-              </div>
+              <Image src="/logo-dg.png" alt="Decorgrass" width={36} height={36} className="h-9 w-9 rounded-lg" />
               <span className="text-xl font-bold text-white">
                 Decor<span className="text-grass-400">grass</span>
               </span>
