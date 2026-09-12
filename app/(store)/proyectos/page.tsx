@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MapPin, Ruler, ArrowRight } from "lucide-react";
 import { projects } from "@/app/lib/data";
-import { getWhatsAppContactURL } from "@/app/lib/utils";
+import ProjectCard from "@/app/components/project/ProjectCard";
 
 export const metadata: Metadata = {
   title: "Proyectos Realizados",
@@ -28,43 +27,7 @@ export default function ProyectosPage() {
       <div className="container-max section-padding">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-2">
           {projects.map((project) => (
-            <div key={project.id} className="card overflow-hidden group">
-              {/* Photo */}
-              <div className="relative h-56 bg-grass-100">
-                {project.afterImages[0] && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={project.afterImages[0]}
-                    alt={project.title}
-                    className="h-full w-full object-cover"
-                  />
-                )}
-              </div>
-              <div className="p-5">
-                <span className="badge-stone mb-2 inline-block">{project.category}</span>
-                <h2 className="font-semibold text-stone-900 group-hover:text-brand-primary transition-colors">
-                  {project.title}
-                </h2>
-                <p className="mt-1.5 text-sm text-stone-500">{project.description}</p>
-                <div className="mt-3 flex flex-wrap gap-3 text-xs text-stone-400">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" />{project.location}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Ruler className="h-3 w-3" />{project.metersInstalled} m²
-                  </span>
-                  <span className="badge-stone">{project.grassUsed}</span>
-                </div>
-                <a
-                  href={getWhatsAppContactURL(`Hola, vi el proyecto "${project.title}" y me gustaría algo similar para mi espacio.`)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 flex items-center gap-1 text-sm font-medium text-brand-primary hover:text-brand-dark"
-                >
-                  Quiero algo similar <ArrowRight className="h-3.5 w-3.5" />
-                </a>
-              </div>
-            </div>
+            <ProjectCard key={project.id} project={project} />
           ))}
         </div>
 

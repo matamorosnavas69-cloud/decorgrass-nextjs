@@ -8,16 +8,18 @@ import { getWhatsAppContactURL } from "@/app/lib/utils";
 
 function ProjectPhoto({ project }: { project: (typeof projects)[0] }) {
   return (
-    <div className="relative h-72 overflow-hidden rounded-xl bg-grass-100 sm:h-80">
-      {project.afterImages[0] && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={project.afterImages[0]}
-          alt={project.title}
-          className="h-full w-full object-cover"
-        />
-      )}
-    </div>
+    <Link href={`/proyectos/${project.slug}`} className="block">
+      <div className="relative h-72 overflow-hidden rounded-xl bg-grass-100 sm:h-80">
+        {project.afterImages[0] && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={project.afterImages[0]}
+            alt={project.title}
+            className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
+          />
+        )}
+      </div>
+    </Link>
   );
 }
 
@@ -54,7 +56,11 @@ export default function BeforeAfter() {
             >
               <ProjectPhoto project={project} />
               <div>
-                <h3 className="font-semibold text-stone-900">{project.title}</h3>
+                <Link href={`/proyectos/${project.slug}`}>
+                  <h3 className="font-semibold text-stone-900 hover:text-brand-primary transition-colors">
+                    {project.title}
+                  </h3>
+                </Link>
                 <div className="mt-1.5 flex flex-wrap gap-3 text-xs text-stone-500">
                   <span className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />

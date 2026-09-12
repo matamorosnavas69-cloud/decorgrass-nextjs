@@ -5,7 +5,7 @@ import { Heart, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn, formatCOP, buildWhatsAppURL } from "@/app/lib/utils";
 import { useWishlist } from "@/app/hooks/useWishlist";
-import type { GrassProduct } from "@/app/lib/data";
+import type { GrassProduct, GrassCategory } from "@/app/lib/data";
 
 interface ProductCardProps {
   product: GrassProduct;
@@ -16,6 +16,19 @@ const badgeStyles = {
   green: "badge-green",
   amber: "badge-amber",
   stone: "badge-stone",
+};
+
+const categoryIcons: Record<GrassCategory, string> = {
+  decorativa: "🌿",
+  deportiva: "🏅",
+  accesorios: "🐾",
+  "paisajismo-verde": "🌿",
+  "paisajismo-colores": "🎨",
+  curly: "🌀",
+  tenis: "🎾",
+  golf: "⛳",
+  tapicesped: "🟩",
+  futbol: "⚽",
 };
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
@@ -47,7 +60,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-7xl">🌿</div>
+              <div className="flex h-full items-center justify-center text-7xl">
+                {categoryIcons[product.category]}
+              </div>
             )}
 
             {/* Badge */}

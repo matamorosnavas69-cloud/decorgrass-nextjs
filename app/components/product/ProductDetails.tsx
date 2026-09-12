@@ -13,6 +13,20 @@ interface ProductDetailsProps {
   product: GrassProduct;
 }
 
+const COMPLIANCE_ROWS = [
+  { label: "ASTM", value: "Sí" },
+  { label: "EN", value: "Parcial" },
+  { label: "DIN", value: "Sí" },
+  { label: "TRACE", value: "Sí" },
+  { label: "SGS", value: "Sí" },
+  { label: "Ensayo UV – EN ISO 20105", value: "Grey Scale 4–5, sin cambio visual" },
+  { label: "Yarn Breaking Strength – ASTM D2256", value: "≥110 N" },
+  { label: "Pill Burn – ASTM D2859", value: "Pass" },
+  { label: "Yarn Melt Point – ASTM D789", value: "100°C" },
+];
+
+const COMPLIANCE_HEIGHTS = ["20mm", "30mm", "40mm"];
+
 export default function ProductDetails({ product }: ProductDetailsProps) {
   const { toggle, has } = useWishlist();
   const wished = has(product.id);
@@ -128,6 +142,40 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           </div>
         </div>
       )}
+
+      {/* Compliance table */}
+      {product.category === "paisajismo-verde" &&
+        COMPLIANCE_HEIGHTS.includes(product.fiberHeight) && (
+          <div>
+            <p className="label-field mb-3">Cumplimiento de normas y certificaciones</p>
+            <div className="overflow-hidden rounded-xl border border-stone-200">
+              <table className="w-full border-collapse text-sm">
+                <thead>
+                  <tr className="bg-grass-50">
+                    <th className="border-b border-stone-200 px-3 py-2 text-left font-semibold text-stone-700">
+                      Norma / certificación
+                    </th>
+                    <th className="border-b border-stone-200 px-3 py-2 text-right font-semibold text-stone-700">
+                      {product.fiberHeight}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPLIANCE_ROWS.map((row, i) => (
+                    <tr key={row.label} className={i % 2 === 0 ? "bg-stone-50" : "bg-white"}>
+                      <td className="border-b border-stone-200 px-3 py-2 font-medium text-stone-700 last:border-b-0">
+                        {row.label}
+                      </td>
+                      <td className="border-b border-stone-200 px-3 py-2 text-right text-stone-600 last:border-b-0">
+                        {row.value}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
       {/* Benefits */}
       <div>

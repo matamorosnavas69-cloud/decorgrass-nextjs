@@ -13,11 +13,18 @@ interface CatalogClientProps {
   initialCategory?: string;
 }
 
-const categories: { value: GrassCategory | "all"; label: string }[] = [
+const categories: { value: GrassCategory | "all"; label: string; icon?: string }[] = [
   { value: "all", label: "Todos" },
-  { value: "decorativa", label: "Decorativa" },
-  { value: "deportiva", label: "Deportiva" },
-  { value: "accesorios", label: "Accesorios" },
+  { value: "decorativa", label: "Decorativa", icon: "🌿" },
+  { value: "deportiva", label: "Deportiva", icon: "🏅" },
+  { value: "accesorios", label: "Accesorios", icon: "🐾" },
+  { value: "paisajismo-verde", label: "Paisajismo Verde", icon: "🌿" },
+  { value: "paisajismo-colores", label: "Paisajismo de Colores", icon: "🎨" },
+  { value: "curly", label: "Curly", icon: "🌀" },
+  { value: "tenis", label: "Tenis", icon: "🎾" },
+  { value: "golf", label: "Golf", icon: "⛳" },
+  { value: "tapicesped", label: "Tapicésped", icon: "🟩" },
+  { value: "futbol", label: "Fútbol", icon: "⚽" },
 ];
 
 const uses: { value: GrassUse | "all"; label: string }[] = [
@@ -114,6 +121,7 @@ export default function CatalogClient({
                   : "text-stone-600 hover:bg-stone-50"
               )}
             >
+              {c.icon && <span className="mr-2">{c.icon}</span>}
               {c.label}
             </button>
           ))}
@@ -203,7 +211,7 @@ export default function CatalogClient({
   );
 
   return (
-    <div className="container-max section-padding">
+    <div className="container-max px-4 pt-8 pb-16 sm:px-6 lg:px-8 lg:pb-24">
       {/* Mobile filter button + search */}
       <div className="mb-6 flex items-center gap-3">
         <div className="relative flex-1">
