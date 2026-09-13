@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SITE_URL } from "@/app/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -13,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://decorgrass.com"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Decorgrass — Grama Sintética Premium para tu Espacio",
     template: "%s | Decorgrass",

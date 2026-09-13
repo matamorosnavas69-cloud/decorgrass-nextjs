@@ -5,6 +5,7 @@ import { prisma } from "@/app/lib/db";
 import { requireAdmin } from "@/app/lib/auth";
 import { getProductBySlug } from "@/app/lib/queries/products";
 import { calculateQuote, formatCOP } from "@/app/lib/utils";
+import { notifyNewLead } from "@/app/lib/email";
 import { quoteLeadSchema, contactLeadSchema } from "@/app/lib/validations/lead";
 import { LeadStatus } from "@prisma/client";
 
@@ -41,6 +42,15 @@ export async function createQuoteLead(input: unknown): Promise<LeadActionResult>
         notes: `Producto: ${product.name} (${product.slug}) · Precio/m²: ${formatCOP(product.pricePerM2)} · Total estimado: ${formatCOP(quote.grandTotal)}`,
       },
     });
+    await notifyNewLead({
+      kind: "cotización",
+      name: data.name,
+      phone: data.phone,
+      city: data.city,
+      spaceType: data.spaceType,
+      squareMeters: data.squareMeters,
+      productName: product.name,
+    });
     return { ok: true };
   } catch (e) {
     console.error("[leads] createQuoteLead error:", e);
@@ -64,6 +74,13 @@ export async function createContactLead(input: unknown): Promise<LeadActionResul
         spaceType: data.spaceType,
         notes: data.message,
       },
+    });
+    await notifyNewLead({
+      kind: "contacto",
+      name: data.name,
+      phone: data.phone,
+      spaceType: data.spaceType,
+      message: data.message,
     });
     return { ok: true };
   } catch (e) {

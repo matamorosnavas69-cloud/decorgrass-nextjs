@@ -420,3 +420,51 @@ Ninguno bloqueante.
 ### 8. Próximo paso
 
 Ninguno pendiente. Con esta fase, el admin tiene CRUD real sobre las dos entidades de catálogo (productos y proyectos) — la única asimetría documentada que queda es que "eliminar" en ambos casos es en realidad "ocultar", una decisión deliberada, no un pendiente.
+
+---
+
+## FASE 6 (fuera del encargo original) — Notificaciones de leads y checklist de lanzamiento
+
+### 1. Qué se hizo
+
+- **Notificaciones por email**: `app/lib/email.ts` envía un aviso de texto plano vía Resend cuando entra una cotización o un contacto nuevo. Es *best-effort* deliberado: si `RESEND_API_KEY`/`NOTIFICATION_EMAIL` no están configuradas, o si Resend falla, el lead igual queda guardado en Postgres — el email nunca puede tumbar la persistencia, que es lo que de verdad no puede perderse.
+- **Dominio centralizado**: `metadataBase`, `robots.ts` y `sitemap.ts` tenían `https://decorgrass.com` hardcodeado en 3 lugares distintos. Se creó `app/lib/site.ts` (`SITE_URL`, con fallback al mismo valor) para que cambiar el dominio real sea una sola variable de entorno, no una búsqueda y reemplazo en el repo.
+- **`docs/LAUNCH_CHECKLIST.md`**: guía paso a paso para el deploy en Vercel — variables de entorno (con cómo generar cada una), verificación de build, configuración de dominio, configuración de Resend, y una checklist de verificación post-deploy. No pude ejecutar ningún paso de esta guía yo mismo (no tengo acceso a Vercel, al dominio ni a la cuenta de Resend del negocio) — es para que la seguas vos.
+- **Aprovechado el cambio para agregar `/login` a `robots.ts`** (antes solo `/dashboard/` estaba en disallow) — consistente con que ya tenía `robots: {index:false}` a nivel de página, pero faltaba en el archivo robots.txt real.
+
+### 2. Archivos creados
+
+- `app/lib/email.ts`
+- `app/lib/site.ts`
+- `docs/LAUNCH_CHECKLIST.md`
+
+### 3. Archivos modificados
+
+- `app/lib/actions/leads.ts` — llama a `notifyNewLead` tras persistir cada lead
+- `app/layout.tsx`, `app/robots.ts`, `app/sitemap.ts` — usan `SITE_URL` en vez del literal hardcodeado
+- `.env.example` — documenta `SITE_URL`, `RESEND_API_KEY`, `NOTIFICATION_EMAIL`
+- `package.json`/`package-lock.json` — nueva dependencia `resend`
+
+### 4. Archivos eliminados
+
+Ninguno.
+
+### 5. Base de datos
+
+Sin cambios.
+
+### 6. Validaciones ejecutadas
+
+- `npm run lint` → 0 errores
+- `npx tsc --noEmit` → sin errores
+- `npm run build` → compila, 65 rutas
+- `npm run test` → 14/14 sin regresiones
+- Prueba manual en navegador: envío de contacto con `RESEND_API_KEY` **sin configurar** (estado actual real del `.env`) → el lead se guardó igual en Postgres, sin ningún error en los logs del servidor, confirmando que la ausencia de configuración de email no rompe el flujo principal. No se pudo probar el envío real de un email porque eso requiere una cuenta de Resend del negocio, que no existe todavía — queda como parte de la verificación post-deploy en `LAUNCH_CHECKLIST.md`.
+
+### 7. Problemas encontrados
+
+Ninguno bloqueante. Limitación reconocida: no pude verificar el envío real de emails (sin cuenta de Resend), ni ejecutar ningún paso del checklist de lanzamiento (sin acceso a Vercel/dominio) — ambos quedan documentados para que el usuario los ejecute.
+
+### 8. Próximo paso
+
+Ninguno de mi lado. Le corresponde al usuario: crear la cuenta de Resend, configurar las variables de entorno en Vercel, y recorrer `docs/LAUNCH_CHECKLIST.md`.
