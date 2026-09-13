@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Heart, MessageCircle, Check, Shield, Ruler, Layers } from "lucide-react";
-import { motion } from "framer-motion";
 import { formatCOP, buildWhatsAppURL } from "@/app/lib/utils";
 import { useWishlist } from "@/app/hooks/useWishlist";
 import { cn } from "@/app/lib/utils";

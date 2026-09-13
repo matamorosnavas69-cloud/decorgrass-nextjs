@@ -37,19 +37,23 @@ model GrassProduct {
 }
 
 model Project {
-  id              String   @id @default(cuid())
-  title           String
-  slug            String   @unique
-  description     String
-  category        String
-  location        String
-  metersInstalled Int
-  grassUsed       String
-  beforeImages    String[]
-  afterImages     String[]
-  tags            String[]
-  published       Boolean  @default(true)
-  createdAt       DateTime @default(now())
+  id                String   @id @default(cuid())
+  title             String
+  slug              String   @unique
+  description       String
+  category          String
+  location          String
+  metersInstalled   Int
+  grassUsed         String
+  grassColor        String
+  installationTime  String
+  warranty          String
+  benefits          String[]
+  beforeImages      String[]
+  afterImages       String[]
+  tags              String[]
+  published         Boolean  @default(true)
+  createdAt         DateTime @default(now())
 }
 
 model Lead {

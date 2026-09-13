@@ -6,6 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test \"tests/**/*.test.ts\"",
     "db:seed": "tsx prisma/seed.ts"
   },
   "prisma": {
@@ -13,12 +16,16 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.8.0",
     "autoprefixer": "^10.5.0",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "framer-motion": "^12.40.0",
+    "jose": "^6.2.12",
     "lucide-react": "^1.20.0",
     "next": "16.2.9",
+    "pg": "^8.23.0",
     "postcss": "^8.5.15",
     "prisma": "^7.8.0",
     "react": "19.2.4",
@@ -30,10 +37,14 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.5",
     "tsx": "^4.19.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "typescript-eslint": "^8.70.0"
   }
 }

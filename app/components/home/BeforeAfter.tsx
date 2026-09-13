@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, MapPin, Ruler } from "lucide-react";
 import { projects } from "@/app/lib/data";
@@ -11,11 +12,12 @@ function ProjectPhoto({ project }: { project: (typeof projects)[0] }) {
     <Link href={`/proyectos/${project.slug}`} className="block">
       <div className="relative h-72 overflow-hidden rounded-xl bg-grass-100 sm:h-80">
         {project.afterImages[0] && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={project.afterImages[0]}
             alt={project.title}
-            className="h-full w-full object-cover transition-transform duration-500 hover:scale-110"
+            fill
+            sizes="(min-width: 1024px) 33vw, 100vw"
+            className="object-cover transition-transform duration-500 hover:scale-110"
           />
         )}
       </div>

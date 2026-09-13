@@ -1,17 +1,20 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { MessageCircle, MapPin, Clock } from "lucide-react";
+import { MessageCircle, MapPin, Clock, CheckCircle2, AlertCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { buildWhatsAppURL } from "@/app/lib/utils";
+import { createContactLead } from "@/app/lib/actions/leads";
 
 const schema = z.object({
   name: z.string().min(2, "Nombre requerido"),
   phone: z.string().min(7, "Teléfono válido requerido"),
   spaceType: z.string().min(1, "Selecciona un tipo"),
   message: z.string().min(10, "Cuéntanos más sobre tu proyecto"),
+  company: z.string().optional(), // honeypot: cualquier valor es válido aquí, se descarta en el servidor
 });
 
 type FormData = z.infer<typeof schema>;
@@ -30,8 +33,11 @@ export default function ContactoPage() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
+  const [isPending, startTransition] = useTransition();
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
   const onSubmit = (data: FormData) => {
     const url = buildWhatsAppURL({
@@ -40,7 +46,13 @@ export default function ContactoPage() {
       spaceType: data.spaceType,
       message: data.message,
     });
-    window.open(url, "_blank");
+
+    startTransition(async () => {
+      const result = await createContactLead(data);
+      setStatus(result.ok ? "success" : "error");
+      if (result.ok) reset();
+      window.open(url, "_blank");
+    });
   };
 
   return (
@@ -93,10 +105,32 @@ export default function ContactoPage() {
                 />
                 {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message.message}</p>}
               </div>
-              <button type="submit" className="btn-whatsapp w-full py-4 text-base">
+
+              {/* Honeypot anti-spam: invisible para personas, los bots lo autocompletan */}
+              <input
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                {...register("company")}
+                className="absolute left-[-9999px] h-0 w-0 opacity-0"
+                aria-hidden="true"
+              />
+
+              <button type="submit" disabled={isPending} className="btn-whatsapp w-full py-4 text-base disabled:cursor-not-allowed disabled:opacity-60">
                 <MessageCircle className="h-5 w-5" />
-                Enviar por WhatsApp
+                {isPending ? "Enviando..." : "Enviar por WhatsApp"}
               </button>
+
+              {status === "success" && (
+                <p className="flex items-center gap-1.5 text-sm text-brand-primary">
+                  <CheckCircle2 className="h-4 w-4" /> Mensaje registrado. Te contactaremos pronto.
+                </p>
+              )}
+              {status === "error" && (
+                <p className="flex items-center gap-1.5 text-sm text-red-500">
+                  <AlertCircle className="h-4 w-4" /> No pudimos guardar tu mensaje, pero puedes continuar por WhatsApp.
+                </p>
+              )}
             </form>
           </motion.div>
 

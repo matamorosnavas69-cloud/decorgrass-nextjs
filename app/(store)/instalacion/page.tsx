@@ -76,7 +76,7 @@ export default function InstalacionPage() {
               El proceso paso a paso
             </h2>
             <div className="mt-6 space-y-4">
-              {processSteps.map((step, i) => (
+              {processSteps.map((step) => (
                 <div key={step.step} className="flex gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-primary text-sm font-bold text-white">
                     {step.step}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { ZoomIn, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,8 +20,8 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
   useEffect(() => {
     if (!zoom) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft") prev();
-      if (e.key === "ArrowRight") next();
+      if (e.key === "ArrowLeft") setActive((i) => (i - 1 + images.length) % images.length);
+      if (e.key === "ArrowRight") setActive((i) => (i + 1) % images.length);
       if (e.key === "Escape") setZoom(false);
     };
     window.addEventListener("keydown", onKey);
@@ -44,11 +45,13 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
             className="block h-full w-full"
             aria-label="Ampliar imagen"
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={images[active]}
               alt={`${title} — foto ${active + 1}`}
-              className="h-full w-full object-cover"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
+              priority
             />
           </button>
           <span className="pointer-events-none absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-stone-700 shadow-sm backdrop-blur-sm">
@@ -68,8 +71,7 @@ export default function ProjectGallery({ images, title }: ProjectGalleryProps) {
                     : "opacity-60 hover:opacity-100"
                 }`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={img} alt="" className="h-full w-full object-cover" />
+                <Image src={img} alt="" fill sizes="64px" className="object-cover" />
               </button>
             ))}
           </div>

@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calculator, ArrowLeft, ArrowRight, MessageCircle, Check, Star, Info } from "lucide-react";
-import { products, type GrassProduct } from "@/app/lib/data";
+import { Calculator, ArrowLeft, ArrowRight, MessageCircle, Check, Star, Info, AlertCircle } from "lucide-react";
+import type { GrassProduct } from "@/app/lib/data";
 import { buildWhatsAppURL, calculateQuote, formatCOP } from "@/app/lib/utils";
+import { createQuoteLead } from "@/app/lib/actions/leads";
 
 const STEPS = ["Espacio", "Medidas", "Producto", "Contacto"];
 
@@ -52,10 +54,9 @@ function ProductRow({
           RECOMENDADO
         </span>
       )}
-      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-grass-100">
+      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-grass-100">
         {p.images[0] && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={p.images[0]} alt={p.name} className="h-full w-full object-cover" />
+          <Image src={p.images[0]} alt={p.name} fill sizes="64px" className="object-cover" />
         )}
       </div>
       <div className="min-w-0 flex-1">
@@ -74,7 +75,7 @@ function ProductRow({
   );
 }
 
-export default function QuoteWizard() {
+export default function QuoteWizard({ products }: { products: GrassProduct[] }) {
   const [step, setStep] = useState(0);
   const [spaceKey, setSpaceKey] = useState("");
   const [width, setWidth] = useState("");
@@ -84,6 +85,9 @@ export default function QuoteWizard() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
+  const [company, setCompany] = useState(""); // honeypot anti-spam
+  const [isPending, startTransition] = useTransition();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const space = SPACES.find((s) => s.key === spaceKey);
   const m2 = (parseFloat(width || "0") || 0) * (parseFloat(length || "0") || 0);
@@ -110,7 +114,22 @@ export default function QuoteWizard() {
       installationNeeded: includeInstallation,
       totalPrice: estimate?.grandTotal,
     });
-    window.open(url, "_blank");
+
+    startTransition(async () => {
+      setSubmitError(null);
+      const result = await createQuoteLead({
+        name,
+        phone,
+        city,
+        spaceType: space?.label ?? "",
+        squareMeters: m2,
+        productSlug: productSlug,
+        installationNeeded: includeInstallation,
+        company,
+      });
+      if (!result.ok) setSubmitError(result.error);
+      window.open(url, "_blank");
+    });
   };
 
   return (
@@ -377,6 +396,23 @@ export default function QuoteWizard() {
                     className="input-field sm:col-span-2"
                   />
                 </div>
+
+                {/* Honeypot anti-spam: invisible para personas, los bots lo autocompletan */}
+                <input
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  className="absolute left-[-9999px] h-0 w-0 opacity-0"
+                  aria-hidden="true"
+                />
+
+                {submitError && (
+                  <p className="mt-4 flex items-center gap-1.5 text-sm text-red-500">
+                    <AlertCircle className="h-4 w-4 shrink-0" /> {submitError}
+                  </p>
+                )}
               </div>
             )}
           </motion.div>
@@ -408,11 +444,11 @@ export default function QuoteWizard() {
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={!canContinue}
+              disabled={!canContinue || isPending}
               className="btn-whatsapp gap-1.5 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <MessageCircle className="h-4 w-4" />
-              Enviar cotización
+              {isPending ? "Enviando..." : "Enviar cotización"}
             </button>
           )}
         </div>

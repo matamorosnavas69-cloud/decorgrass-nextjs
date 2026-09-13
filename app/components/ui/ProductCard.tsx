@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn, formatCOP, buildWhatsAppURL } from "@/app/lib/utils";
@@ -53,11 +54,12 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         <Link href={`/producto/${product.slug}`} className="block">
           <div className="relative h-56 overflow-hidden bg-grass-50">
             {product.images[0] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <Image
                 src={product.images[0]}
                 alt={product.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                fill
+                sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
             ) : (
               <div className="flex h-full items-center justify-center text-7xl">

@@ -1,65 +1,88 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MessageSquare, Package, FolderOpen, TrendingUp, ArrowRight, Clock } from "lucide-react";
-import { products, projects } from "@/app/lib/data";
+import { prisma } from "@/app/lib/db";
 
 export const metadata: Metadata = {
   title: "Dashboard",
 };
 
-const statCards = [
-  {
-    label: "Cotizaciones pendientes",
-    value: "—",
-    sub: "Requieren atención",
-    icon: MessageSquare,
-    color: "text-amber-600",
-    bg: "bg-amber-50",
-    href: "/dashboard/leads",
-  },
-  {
-    label: "Productos activos",
-    value: products.length.toString(),
-    sub: "En catálogo",
-    icon: Package,
-    color: "text-brand-primary",
-    bg: "bg-grass-50",
-    href: "/dashboard/productos",
-  },
-  {
-    label: "Proyectos publicados",
-    value: projects.length.toString(),
-    sub: "En portafolio",
-    icon: FolderOpen,
-    color: "text-stone-600",
-    bg: "bg-stone-100",
-    href: "/dashboard/proyectos",
-  },
-  {
-    label: "Conversión WhatsApp",
-    value: "—",
-    sub: "Este mes",
-    icon: TrendingUp,
-    color: "text-[#25D366]",
-    bg: "bg-[#25D366]/10",
-    href: "/dashboard/leads",
-  },
-];
-
-const recentLeads = [
-  { name: "Juan García", product: "Grama Fútbol 50mm", m2: 120, status: "Nuevo", date: "Hoy" },
-  { name: "María López", product: "Paisajismo 35mm", m2: 45, status: "Contactado", date: "Ayer" },
-  { name: "Carlos Ruiz", product: "Pádel 12mm", m2: 200, status: "Cotizado", date: "Hace 2 días" },
-];
-
-const statusColors: Record<string, string> = {
-  Nuevo: "bg-amber-100 text-amber-800",
-  Contactado: "bg-blue-100 text-blue-800",
-  Cotizado: "bg-grass-100 text-brand-primary",
-  Cerrado: "bg-stone-100 text-stone-600",
+const STATUS_LABEL: Record<string, string> = {
+  NEW: "Nuevo",
+  CONTACTED: "Contactado",
+  QUOTED: "Cotizado",
+  CLOSED: "Cerrado",
+  LOST: "Perdido",
 };
 
-export default function DashboardPage() {
+const STATUS_COLOR: Record<string, string> = {
+  NEW: "bg-amber-100 text-amber-800",
+  CONTACTED: "bg-blue-100 text-blue-800",
+  QUOTED: "bg-grass-100 text-brand-primary",
+  CLOSED: "bg-stone-100 text-stone-600",
+  LOST: "bg-red-100 text-red-700",
+};
+
+function timeAgo(date: Date): string {
+  const diffMs = Date.now() - date.getTime();
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days <= 0) return "Hoy";
+  if (days === 1) return "Ayer";
+  return `Hace ${days} días`;
+}
+
+export default async function DashboardPage() {
+  const [productCount, projectCount, newLeadsCount, totalLeadsCount, recentLeads] = await Promise.all([
+    prisma.grassProduct.count(),
+    prisma.project.count({ where: { published: true } }),
+    prisma.lead.count({ where: { status: "NEW" } }),
+    prisma.lead.count(),
+    prisma.lead.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: { product: { select: { name: true } } },
+    }),
+  ]);
+
+  const statCards = [
+    {
+      label: "Cotizaciones nuevas",
+      value: newLeadsCount.toString(),
+      sub: "Requieren atención",
+      icon: MessageSquare,
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+      href: "/dashboard/leads",
+    },
+    {
+      label: "Productos activos",
+      value: productCount.toString(),
+      sub: "En catálogo",
+      icon: Package,
+      color: "text-brand-primary",
+      bg: "bg-grass-50",
+      href: "/dashboard/productos",
+    },
+    {
+      label: "Proyectos publicados",
+      value: projectCount.toString(),
+      sub: "En portafolio",
+      icon: FolderOpen,
+      color: "text-stone-600",
+      bg: "bg-stone-100",
+      href: "/dashboard/proyectos",
+    },
+    {
+      label: "Total cotizaciones",
+      value: totalLeadsCount.toString(),
+      sub: "Histórico",
+      icon: TrendingUp,
+      color: "text-[#25D366]",
+      bg: "bg-[#25D366]/10",
+      href: "/dashboard/leads",
+    },
+  ];
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -97,32 +120,36 @@ export default function DashboardPage() {
               Ver todas
             </Link>
           </div>
-          <div className="divide-y divide-stone-100">
-            {recentLeads.map((lead) => (
-              <div key={lead.name} className="px-6 py-4 flex items-center gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-stone-900 text-sm">{lead.name}</p>
-                  <p className="text-xs text-stone-500 mt-0.5">
-                    {lead.product} · {lead.m2} m²
-                  </p>
-                </div>
-                <div className="text-right">
-                  <span className={`inline-flex text-xs px-2 py-0.5 rounded-full font-medium ${statusColors[lead.status] ?? "bg-stone-100 text-stone-600"}`}>
-                    {lead.status}
-                  </span>
-                  <p className="text-xs text-stone-400 mt-1 flex items-center gap-1 justify-end">
-                    <Clock className="h-3 w-3" />
-                    {lead.date}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="px-6 py-4 bg-stone-50 border-t border-stone-100">
-            <p className="text-xs text-stone-400 text-center">
-              Datos de ejemplo · Conecta PostgreSQL para datos reales
-            </p>
-          </div>
+          {recentLeads.length === 0 ? (
+            <p className="px-6 py-10 text-center text-sm text-stone-400">Todavía no hay cotizaciones.</p>
+          ) : (
+            <div className="divide-y divide-stone-100">
+              {recentLeads.map((lead) => (
+                <Link
+                  key={lead.id}
+                  href={`/dashboard/leads/${lead.id}`}
+                  className="px-6 py-4 flex items-center gap-4 hover:bg-stone-50 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-stone-900 text-sm">{lead.name}</p>
+                    <p className="text-xs text-stone-500 mt-0.5">
+                      {lead.product?.name ?? lead.spaceType ?? "Contacto general"}
+                      {lead.squareMeters ? ` · ${lead.squareMeters} m²` : ""}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`inline-flex text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_COLOR[lead.status] ?? "bg-stone-100 text-stone-600"}`}>
+                      {STATUS_LABEL[lead.status] ?? lead.status}
+                    </span>
+                    <p className="text-xs text-stone-400 mt-1 flex items-center gap-1 justify-end">
+                      <Clock className="h-3 w-3" />
+                      {timeAgo(lead.createdAt)}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Quick actions */}
@@ -133,9 +160,8 @@ export default function DashboardPage() {
           <div className="p-4 space-y-2">
             {[
               { label: "Añadir producto", href: "/dashboard/productos/nuevo", color: "btn-primary" },
-              { label: "Subir proyecto", href: "/dashboard/proyectos/nuevo", color: "btn-secondary" },
-              { label: "Ver cotizador", href: "/cotizador", color: "btn-secondary" },
-              { label: "Ver catálogo", href: "/catalogo", color: "btn-secondary" },
+              { label: "Ver cotizaciones", href: "/dashboard/leads", color: "btn-secondary" },
+              { label: "Ver catálogo público", href: "/catalogo", color: "btn-secondary" },
             ].map((a) => (
               <Link
                 key={a.label}
@@ -146,58 +172,6 @@ export default function DashboardPage() {
               </Link>
             ))}
           </div>
-
-          <div className="px-4 pb-4">
-            <div className="rounded-xl bg-grass-50 p-4">
-              <p className="text-xs font-semibold text-brand-primary mb-1">Base de datos</p>
-              <p className="text-xs text-stone-600">
-                Configura <code className="bg-white px-1 rounded text-xs">DATABASE_URL</code> en{" "}
-                <code className="bg-white px-1 rounded text-xs">.env.local</code> para activar
-                almacenamiento de leads.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Products quick view */}
-      <div className="mt-6 bg-white rounded-2xl border border-stone-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
-          <h2 className="font-semibold text-stone-900">Catálogo de productos</h2>
-          <Link href="/dashboard/productos" className="text-sm text-brand-primary hover:underline">
-            Gestionar
-          </Link>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-stone-50 border-b border-stone-100">
-                <th className="text-left px-6 py-3 font-medium text-stone-500 text-xs uppercase tracking-wide">Producto</th>
-                <th className="text-left px-6 py-3 font-medium text-stone-500 text-xs uppercase tracking-wide">Slug</th>
-                <th className="text-left px-6 py-3 font-medium text-stone-500 text-xs uppercase tracking-wide">Precio/m²</th>
-                <th className="text-left px-6 py-3 font-medium text-stone-500 text-xs uppercase tracking-wide">Garantía</th>
-                <th className="text-left px-6 py-3 font-medium text-stone-500 text-xs uppercase tracking-wide">Estado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-100">
-              {products.map((p) => (
-                <tr key={p.id} className="hover:bg-stone-50 transition-colors">
-                  <td className="px-6 py-3 font-medium text-stone-900">{p.name}</td>
-                  <td className="px-6 py-3 text-stone-500 font-mono text-xs">{p.slug}</td>
-                  <td className="px-6 py-3 text-stone-700">
-                    ${p.pricePerM2.toLocaleString("es-CO")}
-                  </td>
-                  <td className="px-6 py-3 text-stone-500">{p.guarantee}</td>
-                  <td className="px-6 py-3">
-                    <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-grass-100 text-brand-primary font-medium">
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-                      Activo
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

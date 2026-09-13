@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { projects } from "@/app/lib/data";
+import { getAllProjects } from "@/app/lib/queries/projects";
 import ProjectCard from "@/app/components/project/ProjectCard";
 
 export const metadata: Metadata = {
@@ -9,7 +9,9 @@ export const metadata: Metadata = {
     "Galería de proyectos reales de instalación de grama sintética. Jardines, terrazas, canchas deportivas y más.",
 };
 
-export default function ProyectosPage() {
+export default async function ProyectosPage() {
+  const projects = await getAllProjects();
+
   return (
     <div className="pt-16">
       <div className="bg-stone-50 px-4 py-12 sm:px-6 lg:px-8">

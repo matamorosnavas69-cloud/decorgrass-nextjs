@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { LayoutDashboard, Package, FolderOpen, MessageSquare, Users, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, FolderOpen, MessageSquare, LogOut } from "lucide-react";
 import type { Metadata } from "next";
+import { getSession } from "@/app/lib/auth";
+import { logoutAction } from "@/app/lib/actions/auth";
 
 export const metadata: Metadata = {
   title: "Dashboard — Decorgrass Admin",
@@ -12,11 +14,11 @@ const navItems = [
   { href: "/dashboard/leads", label: "Cotizaciones", icon: MessageSquare },
   { href: "/dashboard/productos", label: "Productos", icon: Package },
   { href: "/dashboard/proyectos", label: "Proyectos", icon: FolderOpen },
-  { href: "/dashboard/clientes", label: "Clientes", icon: Users },
-  { href: "/dashboard/ajustes", label: "Ajustes", icon: Settings },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const session = await getSession();
+
   return (
     <div className="flex min-h-screen bg-stone-100">
       {/* Sidebar */}
@@ -42,14 +44,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
           ))}
         </nav>
-        <div className="p-4 border-t border-stone-200">
+        <div className="p-4 border-t border-stone-200 space-y-1">
+          {session && <p className="px-3 pb-1 text-xs text-stone-400 truncate">{session.email}</p>}
           <Link
             href="/"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-stone-500 hover:text-stone-700 hover:bg-stone-50 transition-colors text-sm"
           >
-            <LogOut className="h-4 w-4" />
             Volver al sitio
           </Link>
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-stone-500 hover:text-red-600 hover:bg-red-50 transition-colors text-sm"
+            >
+              <LogOut className="h-4 w-4" />
+              Cerrar sesión
+            </button>
+          </form>
         </div>
       </aside>
 

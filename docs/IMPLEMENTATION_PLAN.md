@@ -1,6 +1,6 @@
 # DecorGrass — Plan de implementación (backend real)
 
-> Estado: **FASE 0 — auditoría**, sin cambios de código todavía. Este documento se actualiza al cerrar cada fase.
+> Estado: **FASE 4 completada** (calidad y producción). Las 4 fases del plan original están cerradas.
 
 ## 0. Estado actual (verificado en código, no asumido)
 
@@ -143,3 +143,237 @@ No se agrega Cloudinary, no se agrega NextAuth/Clerk, no se agrega un ORM nuevo,
 2. **Credencial de admin (fase 3):** ¿un solo usuario admin (contraseña en variable de entorno) es suficiente para el lanzamiento, o ya se necesitan varias personas con acceso desde el día uno? Cambia si se modela `AdminUser` en Prisma o basta con una env var.
 
 Sin estas dos respuestas puedo avanzar igual con una decisión por defecto (sin email en fase 1, admin único en fase 3) — lo aclaro para no construir de más ni de menos.
+
+---
+
+## FASE 1 COMPLETADA — Leads a PostgreSQL
+
+### 1. Qué se hizo
+
+- El cotizador (`QuoteWizard.tsx`) y el formulario de contacto (`contacto/page.tsx`) ahora persisten un `Lead` real en Postgres antes de abrir WhatsApp (WhatsApp se mantiene como canal, no se reemplaza).
+- El precio de la cotización se recalcula **en el servidor** (`calculateQuote` sobre el catálogo del servidor), nunca se confía en el total que pudo enviar el cliente.
+- Ambos formularios llevan un campo honeypot invisible (anti-spam básico) y deshabilitan el botón mientras la acción está en curso (evita doble envío por doble clic).
+- Se eliminó `app/hooks/useQuote.ts` (store de Zustand sin ningún consumidor — confirmado con grep antes de borrar).
+
+### 2. Archivos creados
+
+- `app/lib/db.ts` — cliente Prisma singleton
+- `app/lib/validations/lead.ts` — schemas Zod para cotización y contacto
+- `app/lib/actions/leads.ts` — Server Actions `createQuoteLead` / `createContactLead`
+
+### 3. Archivos modificados
+
+- `app/components/quote/QuoteWizard.tsx` — llama a `createQuoteLead` antes de abrir WhatsApp; agrega honeypot y estado de envío/error
+- `app/(store)/contacto/page.tsx` — llama a `createContactLead`; agrega honeypot, estado de éxito/error y reset del formulario
+- `package.json` / `package-lock.json` — nuevas dependencias
+
+### 4. Archivos eliminados
+
+- `app/hooks/useQuote.ts`
+
+### 5. Base de datos
+
+- **Sin migraciones nuevas** — se usó el modelo `Lead` ya existente en `schema.prisma`, sin cambiarlo.
+- **Hallazgo no previsto en el plan original:** Prisma 7 no acepta más `new PrismaClient()` sin argumentos cuando el `datasource` del schema no trae `url` embebido — exige un **driver adapter** explícito. Se agregaron `@prisma/adapter-pg` y `pg` (dependencias nuevas, no contempladas en la sección 5 original del plan) y `app/lib/db.ts` construye el cliente con `new PrismaPg({ connectionString: process.env.DATABASE_URL })`. Esto no cambia de ORM ni de proveedor de base de datos — es el mecanismo de conexión que Prisma 7 exige para Postgres.
+- **Como el catálogo sigue sin migrar (fase 2 pendiente),** los productos de `data.ts` no tienen fila correspondiente en `GrassProduct` con el mismo slug que usa el frontend. Por eso `Lead.productId` queda `null` por ahora; el producto cotizado se registra en texto dentro de `notes` (nombre, slug, precio/m² y total). Se conecta el FK real en la fase 2, cuando el catálogo del frontend y el de la base sean el mismo.
+- **Riesgos:** ninguno para datos existentes — no se tocó el schema, no se corrieron migraciones, no se borraron filas salvo los 2 leads de prueba creados y borrados durante la verificación de esta fase.
+
+### 6. Validaciones ejecutadas
+
+- `npx tsc --noEmit` → **sin errores**
+- `npm run build` → **compila y genera las 59 páginas sin errores** (el build no cambió de rutas estáticas/dinámicas respecto al build previo a esta fase)
+- Prueba manual end-to-end en `npm run dev` vía navegador:
+  - Cotizador: wizard completo (Jardín/Terraza → 5m×8m → Tapicésped → datos de contacto) → verificado con una consulta directa a Postgres que el `Lead` quedó creado con el precio calculado en servidor (`$2.280.000` para 40 m² a $42.000/m² + instalación)
+  - Contacto: formulario completo → verificado el `Lead` creado con `notes` = mensaje del formulario, y el mensaje de éxito "Mensaje registrado. Te contactaremos pronto." se mostró en pantalla
+  - Ambos registros de prueba se eliminaron después de verificar (no quedan datos ficticios en la base)
+- No hay `npm run lint` ni tests todavía — llegan en fase 4, según lo planeado.
+
+### 7. Problemas encontrados
+
+- El único imprevisto fue el requisito del driver adapter de Prisma 7 (documentado en §5). No bloqueó la fase, se resolvió agregando `@prisma/adapter-pg`.
+- Advertencia (no error) de `pg` sobre el modo SSL `require` de la cadena de conexión de Neon — es solo un aviso de que en una futura versión mayor de `pg` cambiará la semántica; no requiere acción para el MVP, se revisita si se actualiza `pg` a v9 en el futuro.
+
+### 8. Próximo paso
+
+Fase 2 — migrar el catálogo (`app/lib/data.ts`) a `GrassProduct` en Postgres, y ahí sí conectar `Lead.productId` a una fila real en vez de solo texto en `notes`.
+
+---
+
+## FASE 2 COMPLETADA — Catálogo a PostgreSQL
+
+### 1. Qué se hizo
+
+- Los 38 productos y 7 proyectos de `app/lib/data.ts` quedaron migrados a `GrassProduct` y `Project` en Postgres (la base estaba vacía — el seed anterior de `seed.ts` nunca llegó a correr contra esta instancia de Neon, así que no hubo conflictos de slugs que resolver).
+- `app/lib/queries/products.ts` y `app/lib/queries/projects.ts` ahora consultan Prisma en vez de envolver el array estático — mismo contrato de funciones (`getAllProducts`, `getProductBySlug`, `getFeaturedProducts`, etc.), así que ningún componente que ya las llamaba (`/catalogo`, `/producto/[slug]`, `/proyectos/[slug]`) tuvo que cambiar su lógica.
+- Se detectaron y conectaron 3 puntos que bypaseaban las queries e importaban `data.ts` directamente, rompiendo la promesa de "todo lee de Postgres": `/proyectos` (listado), `sitemap.ts`, y el cotizador (`QuoteWizard.tsx` recibía `products` importado, no por prop). Los tres quedaron conectados a la base.
+- `app/lib/actions/leads.ts` ahora busca el producto con `getProductBySlug` (Postgres) en vez del array estático, y **`Lead.productId` ya se guarda como FK real** a `GrassProduct` — cerrando el pendiente que quedó abierto en la fase 1.
+- **Cambio de schema necesario:** el modelo `Project` no tenía `grassColor`, `installationTime`, `warranty` ni `benefits`, pero los componentes `ProjectDetails.tsx` y `ProjectSpecsTable.tsx` sí los usan (confirmado con grep antes de tocar el schema). Se agregaron esos 4 campos y se corrió una migración — tabla `Project` estaba vacía, migración sin riesgo de datos.
+- SEO/SSG verificado sin romperse: `generateStaticParams` de `/producto/[slug]` y `/proyectos/[slug]` siguen generando las 38 y 7 páginas respectivamente (ahora leyendo la lista desde Postgres en build time), slugs y JSON-LD intactos.
+- **Fuera de alcance deliberado:** `app/components/home/BeforeAfter.tsx` (carrusel de 3 proyectos en el home) sigue leyendo `data.ts` directo — es un componente cliente decorativo, no la fuente de verdad del catálogo/portafolio, y conectarlo requeriría pasar props desde la home. No bloquea ningún criterio de aceptación de esta fase; queda anotado para cuando exista un motivo real de negocio (p. ej. que se note desincronizado tras editar desde el admin en fase 3).
+
+### 2. Archivos creados
+
+- `prisma/migrate-catalog.ts` — script one-off de migración de `data.ts` → Postgres (upsert por slug, se conserva para volver a correrlo si `data.ts` cambia antes de que exista el admin)
+
+### 3. Archivos modificados
+
+- `prisma/schema.prisma` — 4 campos nuevos en `Project`
+- `app/lib/queries/products.ts`, `app/lib/queries/projects.ts` — reescritos sobre Prisma
+- `app/lib/actions/leads.ts` — usa `getProductBySlug` y setea `productId`
+- `app/(store)/proyectos/page.tsx` — server component async con `getAllProjects()`
+- `app/(store)/cotizador/page.tsx` — server component async, pasa `products` a `QuoteWizard`
+- `app/components/quote/QuoteWizard.tsx` — recibe `products` por prop en vez de importarlo
+- `app/sitemap.ts` — async, lee productos/proyectos de Postgres
+
+### 4. Archivos eliminados
+
+Ninguno — `app/lib/data.ts` se conserva intacto (fuente del script de migración y de los tipos `GrassProduct`/`Project`/`GrassCategory`/`GrassUse` que sigue usando toda la UI).
+
+### 5. Base de datos
+
+- **Migración nueva:** `20260913001627_add_project_details` — agrega `grassColor`, `installationTime`, `warranty`, `benefits` a `Project`. Tabla estaba vacía, sin riesgo.
+- **Migración de datos:** `npx tsx prisma/migrate-catalog.ts` → 38 productos y 7 proyectos insertados (upsert por slug, así que es seguro volver a correrlo).
+- **Riesgos:** ninguno para datos preexistentes — no había filas en `GrassProduct` ni `Project` antes de esta fase. Los únicos deletes fueron los leads de prueba creados y borrados durante la verificación.
+
+### 6. Validaciones ejecutadas
+
+- `npx tsc --noEmit` → sin errores
+- `npm run build` → compila y genera las 38 páginas de producto + 7 de proyecto vía SSG leyendo Postgres en build time
+- Prueba manual end-to-end en navegador:
+  - `/catalogo` muestra los productos desde la base (verificado "Tapicésped" presente)
+  - `/producto/tapicesped` muestra precio, altura, beneficios y relacionados correctos
+  - `/proyectos` lista los 7 proyectos desde la base
+  - `/proyectos/putting-green-terraza-residencial` muestra correctamente los 4 campos nuevos del schema (color, tiempo de instalación, garantía, logros)
+  - `/cotizador` carga los productos por prop (ya no por import estático) y, al completar el wizard, el `Lead` creado tiene `productId` apuntando a una fila real de `GrassProduct` (verificado con `include: { product: true }`)
+  - El lead de prueba se eliminó después de verificar
+
+### 7. Problemas encontrados
+
+- El único imprevisto fue descubrir en el camino que 3 lugares (`/proyectos`, `sitemap.ts`, `QuoteWizard`) leían `data.ts` directo sin pasar por las queries — no estaba explícito en el plan original, se detectó con grep antes de dar la fase por cerrada y se corrigió como parte del mismo alcance (son la misma migración, dejarlos sueltos habría sido una migración a medias).
+- Nada bloqueante.
+
+### 8. Próximo paso
+
+Fase 3 — panel admin real: autenticación (`proxy.ts`, no `middleware.ts` — Next 16) y CRUD de productos/leads sobre las tablas que ya están pobladas y conectadas.
+
+---
+
+## FASE 3 COMPLETADA — Admin real con autenticación
+
+### 1. Qué se hizo
+
+- **Autenticación de admin único:** sesión JWT firmada (`jose`) en cookie `httpOnly`, mismo patrón que ya usa `sepseven/app/lib/auth.ts` (reutilizado, no reinventado). Sin tabla `User` — un solo admin validado contra `ADMIN_EMAIL`/`ADMIN_PASSWORD_HASH` (variables de entorno), con una credencial de desarrollo de respaldo si esas variables no están configuradas.
+- **`proxy.ts`** (raíz del proyecto — **no** `middleware.ts`, por el rename de Next 16 documentado en la fase 0) protege todo `/dashboard/*`: sin sesión válida, redirige a `/login`; con sesión, `/login` redirige a `/dashboard`.
+- **`/login`** — formulario simple con `useActionState` + Server Action, sin librería de formularios nueva.
+- **Dashboard con datos reales**: los 4 stat cards y "últimas cotizaciones" ahora leen `prisma.grassProduct.count()`, `prisma.project.count()`, `prisma.lead.count()` — cero números inventados; si no hay leads, dice explícitamente "Todavía no hay cotizaciones."
+- **`/dashboard/leads`**: listado completo, cambio de estado inline (`NEW/CONTACTED/QUOTED/CLOSED/LOST`, mismo enum del schema) sin recargar la página. **`/dashboard/leads/[id]`**: detalle con datos de contacto, producto cotizado (si aplica), botón de WhatsApp directo, `mailto:` si hay email, y notas internas editables.
+- **`/dashboard/productos`**: listado con precio, categoría, destacado y disponibilidad (toggle inline). **`/dashboard/productos/nuevo`** y **`/dashboard/productos/[id]`**: mismo formulario compartido (`ProductForm.tsx`) para crear y editar — todos los campos del modelo `GrassProduct`, con validación Zod server-side (slug único, precio positivo, etc.). "Eliminar" no existe: se marca `available: false` (agotado) en vez de borrar, tal como pedía el encargo.
+- **`/dashboard/proyectos`**: listado de solo lectura (ver §7 — CRUD completo de proyectos quedó fuera de alcance, documentado, no implementado a medias).
+- **Sidebar arreglado**: se eliminaron los enlaces a `/dashboard/clientes` y `/dashboard/ajustes` — no hay modelo `Customer` ni de configuración detrás, y crear páginas vacías solo para que el enlace no diera 404 habría sido una funcionalidad falsa (explícitamente prohibido en el encargo). Los 4 enlaces que quedan (Resumen, Cotizaciones, Productos, Proyectos) van todos a páginas reales.
+- **Logout real** vía Server Action, botón en el sidebar.
+
+### 2. Archivos creados
+
+- `app/lib/auth.ts`, `app/lib/actions/auth.ts`
+- `proxy.ts`
+- `app/(auth)/login/page.tsx`, `app/(auth)/login/LoginForm.tsx`
+- `app/lib/validations/product.ts`, `app/lib/actions/products.ts`
+- `app/dashboard/leads/page.tsx`, `app/dashboard/leads/LeadStatusSelect.tsx`, `app/dashboard/leads/[id]/page.tsx`, `app/dashboard/leads/[id]/NotesForm.tsx`
+- `app/dashboard/productos/page.tsx`, `app/dashboard/productos/ProductForm.tsx`, `app/dashboard/productos/ToggleAvailabilityButton.tsx`, `app/dashboard/productos/nuevo/page.tsx`, `app/dashboard/productos/[id]/page.tsx`
+- `app/dashboard/proyectos/page.tsx`
+
+### 3. Archivos modificados
+
+- `app/dashboard/layout.tsx` — sidebar con enlaces reales + logout
+- `app/dashboard/page.tsx` — stats y leads recientes desde Postgres
+- `app/lib/actions/leads.ts` — `updateLeadStatus`, `updateLeadNotes`, `updateLeadNotesAction` (todas protegidas con `requireAdmin()`)
+- `.env.example` — documenta `AUTH_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`
+- `package.json`/`package-lock.json` — `jose`, `bcryptjs`, `@types/bcryptjs`
+
+### 4. Archivos eliminados
+
+Ninguno.
+
+### 5. Base de datos
+
+Sin migraciones nuevas — toda la fase corre sobre las tablas `GrassProduct` y `Lead` que ya existían desde la fase 2. Sin riesgos: los únicos registros creados/borrados fueron datos de prueba durante la verificación (un producto y un lead, ambos eliminados al final).
+
+### 6. Validaciones ejecutadas
+
+- `npx tsc --noEmit` → sin errores
+- `npm run build` → compila; el log confirma `ƒ Proxy (Middleware)`, es decir que Next 16 reconoció `proxy.ts` correctamente
+- Prueba manual end-to-end en navegador:
+  - `/dashboard` sin sesión → redirige a `/login` (verificado dos veces, antes y después de la fase)
+  - Login con contraseña incorrecta → muestra "Credenciales inválidas"; con la correcta → entra y ve datos reales (38 productos, 7 proyectos, 0 cotizaciones antes de las pruebas)
+  - Crear producto desde `/dashboard/productos/nuevo` → aparece en la lista del admin y en `/producto/<slug>` público sin rebuild (`revalidatePath` funcionando)
+  - Marcar producto como agotado (toggle) → confirmado `available: false` en la base
+  - Cambiar estado de un lead desde la lista → confirmado en la base (`CONTACTED`)
+  - Editar y guardar notas desde el detalle de un lead → confirmado en la base
+  - Logout → vuelve a `/login`; navegar a `/dashboard` después → vuelve a redirigir (protección real, no solo visual)
+  - Todos los datos de prueba (1 producto, 1 lead) se eliminaron después de verificar
+
+### 7. Problemas encontrados
+
+- Ninguno bloqueante. Decisión de alcance documentada: CRUD completo de `/dashboard/proyectos` (crear/editar/archivar) no se implementó — el encargo permitía dejarlo fuera si excedía el alcance del MVP, y el catálogo de productos es lo que el negocio edita con más frecuencia. La página de solo lectura ya resuelve el enlace roto del sidebar; el CRUD completo queda como trabajo futuro si el negocio empieza a subir proyectos seguido.
+- Durante la verificación manual, el overlay de Next.js DevTools (visible solo en modo desarrollo) tapó momentáneamente el botón de "Cerrar sesión" en una captura — no es un defecto de la app, no aparece en producción.
+
+### 8. Próximo paso
+
+Fase 4 — calidad y producción: instalar ESLint (Next 16 quitó `next lint`), convertir imágenes `.HEIC`, reemplazar `<img>` por `next/image` donde falta, agregar `error.tsx`/`loading.tsx`, y un test de humo por flujo crítico (login, envío de cotización).
+
+---
+
+## FASE 4 COMPLETADA — Calidad y producción
+
+### 1. Qué se hizo
+
+- **ESLint instalado y configurado** con `eslint.config.mjs` (flat config, formato obligatorio en Next 16 — `next lint` ya no existe, el script `lint` ahora llama a `eslint .` directo, tal como documenta la fase 0). `eslint-config-next/core-web-vitals` + `/typescript`.
+- **4 errores de lint reales corregidos** (no solo silenciados): `CatalogClient.tsx` creaba un componente (`FilterPanel`) dentro del render en cada renderizado — se movió a un componente de nivel superior con props explícitas (bug real de React, no cosmético: resetea su estado interno en cada render). Comillas sin escapar en `Testimonials.tsx`. 5 warnings triviales de imports/variables sin usar, corregidos.
+- **Bug real encontrado por los tests, no por inspección manual:** el honeypot anti-spam (`company`) usaba `z.string().max(0)` en el schema — si un bot llenaba el campo, `safeParse` fallaba *antes* de llegar a la lógica que debía ignorarlo silenciosamente (`if (data.company) return { ok: true }`), así que el bot recibía un error explícito en vez de una falsa confirmación silenciosa, delatando el honeypot. Corregido en `app/lib/validations/lead.ts` y en el schema del cliente en `contacto/page.tsx`: el campo ahora acepta cualquier string, y la decisión de ignorar el envío queda solo en la Server Action, como se diseñó en la fase 1.
+- **Imágenes:** eliminados 6 archivos `.HEIC` (formato no soportado por navegadores, sin ninguna referencia en el código — sus equivalentes `.jpeg`/`.png` sí se usan) y el Excel accidentalmente publicado en `public/productos/` (`descripcion gramas.xlsx` + su archivo de bloqueo temporal). Reemplazado `<img>` por `next/image` en los 6 componentes que aún lo usaban con contenedor de tamaño fijo (`ProductCard`, `ProjectCard`, `BeforeAfter`, `ProjectBeforeAfter`, `ProjectGallery` — miniatura e imagen principal, `QuoteWizard`). El visor de zoom de `ProjectGallery` se dejó con `<img>` deliberadamente: es un lightbox de tamaño variable según el aspecto de cada foto, donde `next/image` exige un contenedor con dimensiones fijas — forzarlo ahí habría sido peor que la alternativa nativa.
+- **`error.tsx`/`loading.tsx`** agregados en `/catalogo`, `/producto/[slug]` y `/dashboard` (skeletons simples + botón de reintentar).
+- **4 tests de humo** sobre los flujos que de romperse tienen más costo: cálculo de cotización (dinero mal calculado = cotizaciones incorrectas), validación de leads (incluyendo el honeypot — el mismo test que encontró el bug real de arriba), validación de producto del admin (slug inválido rompería la URL pública), y rechazo de credenciales de login (la única puerta de `/dashboard`). No se probó la ruta de éxito de `login()` porque llama a `cookies()` de `next/headers`, que exige un contexto de request real — mockear ese runtime completo habría sido más código que la lógica que protege.
+
+### 2. Archivos creados
+
+- `eslint.config.mjs`
+- `app/(store)/catalogo/loading.tsx`, `app/(store)/catalogo/error.tsx`
+- `app/(store)/producto/[slug]/loading.tsx`, `app/(store)/producto/[slug]/error.tsx`
+- `app/dashboard/loading.tsx`, `app/dashboard/error.tsx`
+- `tests/quote-calculation.test.ts`, `tests/lead-validation.test.ts`, `tests/auth.test.ts`, `tests/product-validation.test.ts`
+
+### 3. Archivos modificados
+
+- `package.json` — scripts `lint`, `typecheck`, `test`; nuevas devDependencies (`eslint`, `eslint-config-next`, `typescript-eslint`)
+- `tsconfig.json` — `allowImportingTsExtensions: true` (los tests importan con extensión `.ts`, requerido para que `tsx`/Node ESM los resuelva)
+- `app/components/catalog/CatalogClient.tsx` — `FilterPanel` extraído fuera del render
+- `app/components/home/Testimonials.tsx` — comillas escapadas
+- `app/(store)/instalacion/page.tsx`, `app/components/layout/Navbar.tsx`, `app/components/product/ProductDetails.tsx`, `app/hooks/useWishlist.ts` — limpieza de warnings
+- `app/lib/validations/lead.ts`, `app/(store)/contacto/page.tsx` — fix del honeypot
+- `app/components/ui/ProductCard.tsx`, `app/components/project/ProjectCard.tsx`, `app/components/home/BeforeAfter.tsx`, `app/components/project/ProjectBeforeAfter.tsx`, `app/components/project/ProjectGallery.tsx`, `app/components/quote/QuoteWizard.tsx` — `<img>` → `next/image`
+
+### 4. Archivos eliminados
+
+- 6 archivos `.HEIC` en `public/productos/` y `public/soluciones/`
+- `public/productos/descripcion gramas.xlsx` y `public/productos/~$descripcion gramas.xlsx`
+
+### 5. Base de datos
+
+Sin cambios.
+
+### 6. Validaciones ejecutadas
+
+- `npm run lint` → **0 errores**, 2 warnings informativos que se dejan deliberadamente (uno de React Compiler sobre `watch()` de react-hook-form — no accionable sin reescribir ese formulario; otro de estilo sobre `postcss.config.mjs`, boilerplate de configuración)
+- `npx tsc --noEmit` → sin errores
+- `npm run build` → compila y genera las 64 rutas sin errores
+- `npm run test` → **14/14 tests pasan** (vía `tsx --test`, no `node --test` puro — Node por sí solo no resuelve `next/headers` ni los imports sin extensión que usa el resto del código; `tsx` sí, porque aplica la misma resolución que el bundler real, y ya era una dependencia del proyecto, no una nueva)
+- Verificación visual en navegador: catálogo y ficha de producto cargan con imágenes servidas vía `/_next/image` (200 OK), sin regresiones
+
+### 7. Problemas encontrados
+
+- El hallazgo real de la fase fue el bug del honeypot (ver §1) — confirma el valor de escribir los tests en vez de solo instalarlos como checkbox.
+- 2 warnings de lint se dejan sin resolver (ver §6) — no son errores, arreglarlos no aporta valor proporcional al esfuerzo en esta etapa.
+
+### 8. Próximo paso
+
+Ninguno pendiente del plan original. El MVP cumple los 16 puntos del objetivo principal (sección 4 del encargo). Como trabajo futuro, no bloqueante: CRUD completo de `/dashboard/proyectos` (hoy es de solo lectura, decisión documentada en fase 3) y evaluar Cloudinary si el volumen de imágenes crece lo suficiente para justificarlo.

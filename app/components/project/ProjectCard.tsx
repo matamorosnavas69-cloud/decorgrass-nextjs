@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { MapPin, Ruler, ArrowRight } from "lucide-react";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
 import type { Project } from "@/app/lib/data";
@@ -13,11 +14,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       <Link href={`/proyectos/${project.slug}`} className="block">
         <div className="relative h-56 bg-grass-100">
           {project.afterImages[0] && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={project.afterImages[0]}
               alt={project.title}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+              fill
+              sizes="(min-width: 640px) 50vw, 100vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-110"
             />
           )}
         </div>
