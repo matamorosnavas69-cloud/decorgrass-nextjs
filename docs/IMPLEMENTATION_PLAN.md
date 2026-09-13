@@ -1,6 +1,6 @@
 # DecorGrass — Plan de implementación (backend real)
 
-> Estado: **FASE 4 completada** (calidad y producción). Las 4 fases del plan original están cerradas.
+> Estado: **FASE 4 completada** (calidad y producción). Las 4 fases del plan original están cerradas. Se agregó una **FASE 5** (fuera del encargo original, pedida explícitamente por el usuario): CRUD completo de Proyectos.
 
 ## 0. Estado actual (verificado en código, no asumido)
 
@@ -377,3 +377,46 @@ Sin cambios.
 ### 8. Próximo paso
 
 Ninguno pendiente del plan original. El MVP cumple los 16 puntos del objetivo principal (sección 4 del encargo). Como trabajo futuro, no bloqueante: CRUD completo de `/dashboard/proyectos` (hoy es de solo lectura, decisión documentada en fase 3) y evaluar Cloudinary si el volumen de imágenes crece lo suficiente para justificarlo.
+
+---
+
+## FASE 5 (fuera del encargo original) — CRUD completo de Proyectos
+
+### 1. Qué se hizo
+
+`/dashboard/proyectos` dejó de ser de solo lectura. Mismo patrón que el CRUD de productos (fase 3): formulario compartido para crear/editar, validación Zod server-side (slug único con el mismo regex que productos), y "despublicar" (`published: false`) en vez de borrar — coherente con el criterio de `toggleProductAvailability` de no eliminar filas del catálogo/portafolio, solo ocultarlas. El listado del admin ahora muestra **todos** los proyectos (publicados y ocultos), a diferencia de `getAllProjects()` (que sigue filtrando `published: true` para el sitio público) — por eso el admin consulta `prisma.project.findMany()` directo en vez de reusar esa query.
+
+### 2. Archivos creados
+
+- `app/lib/validations/project.ts`
+- `app/lib/actions/projects.ts` (`createProject`, `updateProject`, `toggleProjectPublished`, todas protegidas con `requireAdmin()`)
+- `app/dashboard/proyectos/ProjectForm.tsx`, `app/dashboard/proyectos/TogglePublishedButton.tsx`
+- `app/dashboard/proyectos/nuevo/page.tsx`, `app/dashboard/proyectos/[id]/page.tsx`
+
+### 3. Archivos modificados
+
+- `app/dashboard/proyectos/page.tsx` — de listado de solo lectura a listado administrable completo
+
+### 4. Archivos eliminados
+
+Ninguno.
+
+### 5. Base de datos
+
+Sin cambios de schema — el modelo `Project` ya tenía todos los campos necesarios desde la fase 2.
+
+### 6. Validaciones ejecutadas
+
+- `npm run lint` → 0 errores (se encontraron y corrigieron 4 comillas sin escapar nuevas en `ProjectForm.tsx` antes de dar la fase por cerrada)
+- `npx tsc --noEmit` → sin errores
+- `npm run build` → compila y genera las rutas nuevas (`/dashboard/proyectos/[id]`, `/dashboard/proyectos/nuevo`)
+- `npm run test` → 14/14 (sin regresiones)
+- Prueba manual end-to-end en navegador: crear un proyecto → aparece en `/dashboard/proyectos` y en `/proyectos/<slug>` público sin rebuild; despublicarlo → desaparece del listado admin visualmente (badge "Oculto") y el público da 404 (confirmado que `getProjectBySlug` respeta `published`); editar el título → confirmado en la base; proyecto de prueba eliminado al final
+
+### 7. Problemas encontrados
+
+Ninguno bloqueante.
+
+### 8. Próximo paso
+
+Ninguno pendiente. Con esta fase, el admin tiene CRUD real sobre las dos entidades de catálogo (productos y proyectos) — la única asimetría documentada que queda es que "eliminar" en ambos casos es en realidad "ocultar", una decisión deliberada, no un pendiente.
