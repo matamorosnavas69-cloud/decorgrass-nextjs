@@ -12,6 +12,7 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
+import { isRateLimited, recordFailedAttempt } from "@/app/lib/rate-limit";
 
 const SECRET = new TextEncoder().encode(
   process.env.AUTH_SECRET ?? "dev-only-secret-replace-in-prod-32-chars"
@@ -68,10 +69,21 @@ export async function requireAdmin(): Promise<AdminSession> {
 
 export async function login(email: string, password: string): Promise<AuthResult> {
   const normalized = email.trim().toLowerCase();
-  if (normalized !== ADMIN_EMAIL) return { ok: false, error: "Credenciales inválidas" };
+
+  if (await isRateLimited(normalized)) {
+    return { ok: false, error: "Demasiados intentos. Espera unos minutos e intenta de nuevo." };
+  }
+
+  if (normalized !== ADMIN_EMAIL) {
+    await recordFailedAttempt(normalized);
+    return { ok: false, error: "Credenciales inválidas" };
+  }
 
   const match = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
-  if (!match) return { ok: false, error: "Credenciales inválidas" };
+  if (!match) {
+    await recordFailedAttempt(normalized);
+    return { ok: false, error: "Credenciales inválidas" };
+  }
 
   await setSessionCookie({ email: normalized });
   return { ok: true };

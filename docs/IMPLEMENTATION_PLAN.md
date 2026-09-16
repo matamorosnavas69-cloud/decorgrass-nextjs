@@ -1,6 +1,6 @@
 # DecorGrass — Plan de implementación (backend real)
 
-> Estado: **FASE 4 completada** (calidad y producción). Las 4 fases del plan original están cerradas. Se agregó una **FASE 5** (fuera del encargo original, pedida explícitamente por el usuario): CRUD completo de Proyectos.
+> Estado: **FASE 4 completada** (calidad y producción). Las 4 fases del plan original están cerradas. Se agregaron 3 fases fuera del encargo original, pedidas explícitamente por el usuario: **FASE 5** (CRUD de Proyectos), **FASE 6** (notificaciones de leads + guía de lanzamiento), **FASE 7** (carrito/checkout con pago Wompi + rate limiting de login).
 
 ## 0. Estado actual (verificado en código, no asumido)
 
@@ -468,3 +468,85 @@ Ninguno bloqueante. Limitación reconocida: no pude verificar el envío real de 
 ### 8. Próximo paso
 
 Ninguno de mi lado. Le corresponde al usuario: crear la cuenta de Resend, configurar las variables de entorno en Vercel, y recorrer `docs/LAUNCH_CHECKLIST.md`.
+
+---
+
+## FASE 7 (fuera del encargo original) — Carrito, checkout con Wompi y rate limiting
+
+### 1. Qué se hizo
+
+**Carrito multi-producto real**, agregado *junto* al flujo de cotización existente (no lo reemplaza — el negocio sigue pudiendo cerrar por WhatsApp):
+
+- `app/hooks/useCart.ts`: store Zustand persistido en localStorage (mismo patrón que `useWishlist.ts`), items por producto con m² e instalación, precio recalculado con `calculateQuote` (reuso directo de la lógica que ya usa el cotizador).
+- Botón "Agregar al carrito" en `M2Calculator.tsx` (la ficha de producto), junto al de WhatsApp existente — no se tocó el flujo de cotización.
+- Ícono de carrito con contador en `Navbar.tsx`.
+- `/carrito`: ver, editar m²/instalación, quitar items.
+- `/checkout`: datos del cliente → crea el pedido → botón de pago Wompi.
+- `/pedido/[reference]`: estado del pedido (lee de Postgres, actualizado solo por el webhook — nunca por el frontend).
+
+**Pago con Wompi**, verificado contra la documentación oficial en vivo (no de memoria, dado que es dinero real):
+
+- `app/lib/wompi.ts`: firma de integridad del widget (`SHA256(reference + amount_in_cents + currency + integrity_secret)`) y verificación del checksum de webhooks (`SHA256(propiedades concatenadas + timestamp + events_secret)`) — ambos algoritmos confirmados vía fetch a `docs.wompi.co` el mismo día de la implementación.
+- `app/lib/actions/orders.ts` (`createOrder`): igual que `createQuoteLead`, el precio de cada línea se recalcula en el servidor contra el catálogo real — nunca se confía en lo que mande el carrito del cliente.
+- `app/api/webhooks/wompi/route.ts`: única ruta de API real del proyecto — se justifica porque un webhook necesita un endpoint HTTP, no puede ser una Server Action. Verifica el checksum antes de tocar la base; sin eso, cualquiera podría hacer un POST falso marcando un pedido como pagado.
+- Modelos nuevos: `Order`, `OrderItem`, enum `OrderStatus`.
+- Admin: `/dashboard/pedidos` (listado + detalle, solo lectura — el estado lo cambia el webhook, no el admin manualmente).
+
+**Rate limiting del login** (lo único que el usuario pidió de seguridad):
+
+- Modelo `LoginAttempt` + `app/lib/rate-limit.ts`: bloquea tras 5 intentos fallidos en 15 minutos, por email intentado. Respaldado en Postgres, no en memoria — en Vercel cada invocación puede ser una instancia sin estado compartido, así que un contador en memoria no protegería nada en producción.
+- Falla abierto ante errores de infraestructura: si Postgres no responde al chequear el límite, no bloquea el login — un problema de base de datos no debe dejar al único admin sin acceso.
+
+**Dos bugs reales encontrados y corregidos durante la verificación manual** (no en el primer intento):
+
+1. `CheckoutForm.tsx` redirigía a `/carrito` en *cada* carga de `/checkout`, incluso con el carrito lleno — porque el carrito persiste en localStorage y solo se conoce después de hidratar en el cliente; en el primer render `items` siempre es `[]`. Se corrigió con un flag de hidratación antes de evaluar el guard de redirección.
+2. `createOrder` creaba el pedido en la base y *después* intentaba generar la firma de Wompi — si `WOMPI_INTEGRITY_SECRET` no estaba configurada (como en este entorno de desarrollo), la función fallaba y el usuario veía un error genérico, sin saber que su pedido en realidad sí se había guardado (huérfano, sin ninguna forma de que el negocio lo relacionara con el error mostrado). Se corrigió para que la firma sea opcional en el resultado (`signature: string | null`) — el pedido se crea siempre, y el checkout cae al mensaje de "pago por WhatsApp" cuando no hay firma, en vez de fallar.
+
+### 2. Archivos creados
+
+- Schema: modelos `Order`, `OrderItem`, `LoginAttempt`, enum `OrderStatus`, migración `20260916030452_add_orders_and_login_attempts`
+- `app/lib/wompi.ts`, `app/lib/rate-limit.ts`, `app/hooks/useCart.ts`
+- `app/lib/validations/order.ts`, `app/lib/actions/orders.ts`
+- `app/api/webhooks/wompi/route.ts`
+- `app/(store)/carrito/page.tsx`, `app/(store)/checkout/page.tsx`, `app/(store)/checkout/CheckoutForm.tsx`, `app/(store)/pedido/[reference]/page.tsx`
+- `app/dashboard/pedidos/page.tsx`, `app/dashboard/pedidos/[id]/page.tsx`
+
+### 3. Archivos modificados
+
+- `app/lib/auth.ts` — usa `rate-limit.ts` en `login()`
+- `app/lib/db.ts` — agrega `import "dotenv/config"` (sin esto, cualquier script o test fuera del runtime de Next corre con `DATABASE_URL` undefined)
+- `app/components/product/M2Calculator.tsx`, `app/components/layout/Navbar.tsx` — botón de carrito y contador
+- `app/dashboard/layout.tsx` — enlace a Pedidos en el sidebar
+- `tests/auth.test.ts` — limpieza de `LoginAttempt` antes/después, test nuevo del rate limit
+- `.env.example` — variables de Wompi documentadas
+
+### 4. Archivos eliminados
+
+Ninguno.
+
+### 5. Base de datos
+
+Migración `20260916030452_add_orders_and_login_attempts` — aditiva, tablas nuevas, sin riesgo para datos existentes.
+
+### 6. Validaciones ejecutadas
+
+- `npm run lint` → 0 errores
+- `npx tsc --noEmit` → sin errores
+- `npm run build` → compila, 69 rutas (incluye `/api/webhooks/wompi` como única ruta dinámica de API)
+- `npm run test` → 15/15 (14 previos + 1 nuevo test de rate limit, que ejercita el bloqueo real contra Postgres)
+- **Prueba manual end-to-end completa**, incluyendo el webhook con firma real calculada (con credenciales Wompi de prueba temporales en `.env`, retiradas al terminar):
+  1. Agregar producto al carrito desde la ficha → verificado en `/carrito`
+  2. Checkout → pedido creado en Postgres con precio recalculado en servidor (confirmado: mismo total que mostraba el carrito)
+  3. Webhook con checksum **válido** (`transaction.updated`, status `APPROVED`) → `200 OK`, pedido pasa a `APPROVED` con `wompiTransactionId` guardado
+  4. Webhook con checksum **inválido** → `401`, pedido sin modificar (probado explícitamente para confirmar que no cualquiera puede marcar un pedido como pagado)
+  5. `/pedido/[reference]` muestra "Pago aprobado" reflejando el estado real de la base
+  6. `/dashboard/pedidos` muestra el pedido con su estado correcto
+  7. Datos de prueba eliminados de la base al terminar
+
+### 7. Problemas encontrados
+
+Los dos bugs de hidratación/orden-huérfana descritos en §1 — ambos se encontraron durante la verificación manual (no durante el desarrollo inicial) y se corrigieron antes de dar la fase por cerrada. Ningún problema sin resolver.
+
+### 8. Próximo paso
+
+Ninguno de mi lado. Antes de aceptar pagos reales, el usuario necesita: crear cuenta en Wompi, configurar `NEXT_PUBLIC_WOMPI_PUBLIC_KEY`/`WOMPI_INTEGRITY_SECRET`/`WOMPI_EVENTS_SECRET` en producción, y registrar la URL del webhook (`https://<dominio>/api/webhooks/wompi`) en el dashboard de Wompi — ninguno de estos tres pasos se puede hacer sin la cuenta real del negocio.

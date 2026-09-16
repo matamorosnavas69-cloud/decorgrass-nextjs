@@ -15,6 +15,9 @@ En **Project Settings → Environment Variables**, agregá estas para el entorno
 | `SITE_URL` | `https://tu-dominio-real.com` | El dominio final una vez configurado (paso 3) |
 | `RESEND_API_KEY` | Tu API key de Resend | [resend.com](https://resend.com) → API Keys → Create |
 | `NOTIFICATION_EMAIL` | El email donde el equipo comercial quiere recibir avisos de leads nuevos | — |
+| `NEXT_PUBLIC_WOMPI_PUBLIC_KEY` | Llave pública de Wompi | Dashboard de Wompi → Configuración → Secretos para integración técnica (usar `pub_test_...` para probar, `pub_prod_...` en real) |
+| `WOMPI_INTEGRITY_SECRET` | Secreto de integridad | Mismo lugar que la anterior — nunca exponerlo al cliente |
+| `WOMPI_EVENTS_SECRET` | Secreto de eventos/webhooks | Mismo lugar — es el que verifica que un webhook realmente vino de Wompi |
 
 **Importante:** sin `AUTH_SECRET`, `ADMIN_EMAIL` y `ADMIN_PASSWORD_HASH` configuradas, el sitio en producción cae a la credencial de desarrollo (`admin@decorgrass.com` / `decorgrass2026`, definida en `app/lib/auth.ts`) — **cualquiera que la conozca entra al dashboard**. No lances a producción sin configurar estas tres.
 
@@ -46,7 +49,18 @@ Por defecto, `app/lib/email.ts` envía desde `onboarding@resend.dev` (funciona s
 
 Esto no es bloqueante para lanzar — podés lanzar con `onboarding@resend.dev` y cambiarlo después.
 
-## 5. Verificación post-deploy (en el dominio real, no en localhost)
+## 5. Wompi — activar pagos reales
+
+1. Creá la cuenta en [wompi.co](https://wompi.co) y completá la verificación del negocio (Wompi pide esto antes de dar llaves de producción — puede tardar unos días, arrancá esto temprano).
+2. Configurá las 3 variables de Wompi de la tabla del paso 1 (`pub_test_...` para probar primero, `pub_prod_...` cuando esté verificado).
+3. **Registrá el webhook**: Dashboard de Wompi → Configuración → Webhooks → agregá `https://tu-dominio-real.com/api/webhooks/wompi`. Sin este paso, los pagos se procesan pero el pedido en `/dashboard/pedidos` nunca pasa de "Pendiente" — el webhook es la única forma en que el sitio se entera de que un pago se aprobó.
+4. Hacé una compra de prueba completa con una [tarjeta de prueba de Wompi](https://docs.wompi.co/docs/colombia/tarjetas-de-prueba/) en modo `pub_test_`:
+   - [ ] El checkout muestra el botón de pago de Wompi (no el mensaje de "pago no disponible")
+   - [ ] Después de pagar, `/pedido/<referencia>` muestra "Pago aprobado" en menos de un minuto
+   - [ ] El pedido aparece en `/dashboard/pedidos` con el mismo estado
+5. Recién después de una prueba exitosa en `pub_test_`, cambiá las 3 variables a las llaves `pub_prod_`/producción.
+
+## 6. Verificación post-deploy (en el dominio real, no en localhost)
 
 Marcá cada uno manualmente después del primer deploy:
 
@@ -62,9 +76,11 @@ Marcá cada uno manualmente después del primer deploy:
 - [ ] Crear un producto de prueba desde `/dashboard/productos/nuevo` → aparece en `/catalogo` sin redeploy → **borralo o marcalo agotado** después de probar
 - [ ] `/sitemap.xml` y `/robots.txt` muestran el dominio real, no `decorgrass.com` (a menos que ese sea tu dominio real)
 - [ ] Compartir un link de un producto en WhatsApp/redes muestra la imagen de vista previa (Open Graph) correcta
+- [ ] Agregar un producto al carrito, completar checkout, y verificar que el pedido aparece en `/dashboard/pedidos`
+- [ ] Un POST al webhook con checksum inválido responde `401` (protección contra pagos falsos — no debería hacer falta probarlo en producción, pero si tenés dudas, es la misma prueba que se corrió en desarrollo)
 
-## 6. Después de lanzar
+## 7. Después de lanzar
 
-- Borrá cualquier lead o producto de prueba que hayas creado durante la verificación.
+- Borrá cualquier lead, producto o pedido de prueba que hayas creado durante la verificación.
 - Guardá `ADMIN_PASSWORD_HASH` y `AUTH_SECRET` en un lugar seguro (gestor de contraseñas del equipo) — si se pierden, hay que generar unos nuevos y todas las sesiones activas de admin se invalidan.
 - Contale al equipo comercial que ya pueden revisar `/dashboard/leads` (y recibirán email si configuraste Resend).

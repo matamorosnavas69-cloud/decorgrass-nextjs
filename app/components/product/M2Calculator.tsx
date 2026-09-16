@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Calculator, MessageCircle } from "lucide-react";
+import { Calculator, MessageCircle, ShoppingCart, Check } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateQuote, formatCOP, buildWhatsAppURL } from "@/app/lib/utils";
+import { useCart } from "@/app/hooks/useCart";
 import type { GrassProduct } from "@/app/lib/data";
 
 interface M2CalculatorProps {
@@ -14,6 +15,8 @@ export default function M2Calculator({ product }: M2CalculatorProps) {
   const [width, setWidth] = useState("");
   const [length, setLength] = useState("");
   const [includeInstallation, setIncludeInstallation] = useState(true);
+  const [added, setAdded] = useState(false);
+  const addItem = useCart((s) => s.addItem);
 
   const m2 =
     parseFloat(width || "0") * parseFloat(length || "0");
@@ -104,15 +107,29 @@ export default function M2Calculator({ product }: M2CalculatorProps) {
               <p className="mt-2 text-xs text-stone-400">*Precio orientativo, varía según accesos y preparación del terreno.</p>
             </div>
 
-            <a
-              href={whatsappURL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-whatsapp mt-3 w-full justify-center gap-2"
-            >
-              <MessageCircle className="h-4 w-4" />
-              Cotizar {m2.toFixed(1)} m² por WhatsApp
-            </a>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => {
+                  addItem(product, m2, includeInstallation);
+                  setAdded(true);
+                  setTimeout(() => setAdded(false), 2000);
+                }}
+                className="btn-primary w-full justify-center gap-2"
+              >
+                {added ? <Check className="h-4 w-4" /> : <ShoppingCart className="h-4 w-4" />}
+                {added ? "Agregado" : "Agregar al carrito"}
+              </button>
+              <a
+                href={whatsappURL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-whatsapp w-full justify-center gap-2"
+              >
+                <MessageCircle className="h-4 w-4" />
+                Cotizar por WhatsApp
+              </a>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

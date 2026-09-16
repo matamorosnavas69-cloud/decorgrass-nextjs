@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, Package, FolderOpen, MessageSquare, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, FolderOpen, MessageSquare, ShoppingBag, LogOut } from "lucide-react";
 import type { Metadata } from "next";
 import { getSession } from "@/app/lib/auth";
 import { logoutAction } from "@/app/lib/actions/auth";
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 const navItems = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
   { href: "/dashboard/leads", label: "Cotizaciones", icon: MessageSquare },
+  { href: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingBag },
   { href: "/dashboard/productos", label: "Productos", icon: Package },
   { href: "/dashboard/proyectos", label: "Proyectos", icon: FolderOpen },
 ];
