@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model GrassProduct {
@@ -35,22 +34,27 @@ model GrassProduct {
   updatedAt        DateTime @updatedAt
   leads            Lead[]
   reviews          Review[]
+  orderItems       OrderItem[]
 }
 
 model Project {
-  id              String   @id @default(cuid())
-  title           String
-  slug            String   @unique
-  description     String
-  category        String
-  location        String
-  metersInstalled Int
-  grassUsed       String
-  beforeImages    String[]
-  afterImages     String[]
-  tags            String[]
-  published       Boolean  @default(true)
-  createdAt       DateTime @default(now())
+  id                String   @id @default(cuid())
+  title             String
+  slug              String   @unique
+  description       String
+  category          String
+  location          String
+  metersInstalled   Int
+  grassUsed         String
+  grassColor        String
+  installationTime  String
+  warranty          String
+  benefits          String[]
+  beforeImages      String[]
+  afterImages       String[]
+  tags              String[]
+  published         Boolean  @default(true)
+  createdAt         DateTime @default(now())
 }
 
 model Lead {
@@ -89,10 +93,63 @@ model Subscriber {
   createdAt DateTime @default(now())
 }
 
+model Order {
+  id                 String      @id @default(cuid())
+  reference          String      @unique
+  customerName       String
+  customerPhone      String
+  customerEmail      String
+  customerCity       String
+  customerAddress    String
+  subtotal           Int
+  total              Int
+  status             OrderStatus @default(PENDING)
+  wompiTransactionId String?
+  items              OrderItem[]
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+}
+
+model OrderItem {
+  id                 String        @id @default(cuid())
+  orderId            String
+  order              Order         @relation(fields: [orderId], references: [id])
+  productId          String?
+  product            GrassProduct? @relation(fields: [productId], references: [id])
+  productName        String
+  productSlug        String
+  pricePerM2         Int
+  squareMeters       Float
+  installationNeeded Boolean       @default(false)
+  subtotal           Int
+}
+
+// ponytail: sin tabla de usuarios, un solo admin — el rate limit de login
+// se guarda acá en vez de en memoria (Vercel = funciones sin estado
+// compartido entre invocaciones; Postgres sí lo comparte). Sin job de
+// limpieza: las filas viejas nunca se borran, solo se ignoran fuera de la
+// ventana de 15 min. Si el volumen de intentos crece lo suficiente para
+// importar, ahí se agrega un cron de borrado — no antes.
+model LoginAttempt {
+  id         String   @id @default(cuid())
+  identifier String
+  createdAt  DateTime @default(now())
+
+  @@index([identifier, createdAt])
+}
+
 enum LeadStatus {
   NEW
   CONTACTED
   QUOTED
   CLOSED
   LOST
+}
+
+enum OrderStatus {
+  PENDING
+  APPROVED
+  DECLINED
+  VOIDED
+  ERROR
 }

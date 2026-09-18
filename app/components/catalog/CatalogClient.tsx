@@ -13,11 +13,18 @@ interface CatalogClientProps {
   initialCategory?: string;
 }
 
-const categories: { value: GrassCategory | "all"; label: string }[] = [
+const categories: { value: GrassCategory | "all"; label: string; icon?: string }[] = [
   { value: "all", label: "Todos" },
-  { value: "decorativa", label: "Decorativa" },
-  { value: "deportiva", label: "Deportiva" },
-  { value: "accesorios", label: "Accesorios" },
+  { value: "decorativa", label: "Decorativa", icon: "🌿" },
+  { value: "deportiva", label: "Deportiva", icon: "🏅" },
+  { value: "accesorios", label: "Accesorios", icon: "🐾" },
+  { value: "paisajismo-verde", label: "Paisajismo Verde", icon: "🌿" },
+  { value: "paisajismo-colores", label: "Paisajismo de Colores", icon: "🎨" },
+  { value: "curly", label: "Curly", icon: "🌀" },
+  { value: "tenis", label: "Tenis", icon: "🎾" },
+  { value: "golf", label: "Golf", icon: "⛳" },
+  { value: "tapicesped", label: "Tapicésped", icon: "🟩" },
+  { value: "futbol", label: "Fútbol", icon: "⚽" },
 ];
 
 const uses: { value: GrassUse | "all"; label: string }[] = [
@@ -37,66 +44,36 @@ const sortOptions = [
   { value: "name", label: "Nombre A-Z" },
 ];
 
-export default function CatalogClient({
-  products,
-  initialUse,
-  initialCategory,
-}: CatalogClientProps) {
-  const [category, setCategory] = useState<GrassCategory | "all">(
-    (initialCategory as GrassCategory) || "all"
-  );
-  const [use, setUse] = useState<GrassUse | "all">(
-    (initialUse as GrassUse) || "all"
-  );
-  const [priceMax, setPriceMax] = useState<number>(100000);
-  const [sort, setSort] = useState("default");
-  const [search, setSearch] = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [petOnly, setPetOnly] = useState(false);
-  const [childOnly, setChildOnly] = useState(false);
+interface FilterPanelProps {
+  category: GrassCategory | "all";
+  setCategory: (c: GrassCategory | "all") => void;
+  use: GrassUse | "all";
+  setUse: (u: GrassUse | "all") => void;
+  priceMax: number;
+  setPriceMax: (p: number) => void;
+  petOnly: boolean;
+  setPetOnly: (v: boolean) => void;
+  childOnly: boolean;
+  setChildOnly: (v: boolean) => void;
+  activeFilters: number;
+  resetFilters: () => void;
+}
 
-  const filtered = useMemo(() => {
-    let result = products.filter((p) => p.available);
-
-    if (category !== "all") result = result.filter((p) => p.category === category);
-    if (use !== "all") result = result.filter((p) => p.uses.includes(use));
-    if (petOnly) result = result.filter((p) => p.petFriendly);
-    if (childOnly) result = result.filter((p) => p.childFriendly);
-    result = result.filter((p) => p.pricePerM2 <= priceMax);
-    if (search) {
-      const q = search.toLowerCase();
-      result = result.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
-      );
-    }
-
-    switch (sort) {
-      case "price-asc": return [...result].sort((a, b) => a.pricePerM2 - b.pricePerM2);
-      case "price-desc": return [...result].sort((a, b) => b.pricePerM2 - a.pricePerM2);
-      case "name": return [...result].sort((a, b) => a.name.localeCompare(b.name));
-      default: return result;
-    }
-  }, [products, category, use, priceMax, sort, search, petOnly, childOnly]);
-
-  const activeFilters =
-    (category !== "all" ? 1 : 0) +
-    (use !== "all" ? 1 : 0) +
-    (petOnly ? 1 : 0) +
-    (childOnly ? 1 : 0) +
-    (priceMax < 100000 ? 1 : 0);
-
-  const resetFilters = () => {
-    setCategory("all");
-    setUse("all");
-    setPriceMax(100000);
-    setPetOnly(false);
-    setChildOnly(false);
-    setSearch("");
-  };
-
-  const FilterPanel = () => (
+function FilterPanel({
+  category,
+  setCategory,
+  use,
+  setUse,
+  priceMax,
+  setPriceMax,
+  petOnly,
+  setPetOnly,
+  childOnly,
+  setChildOnly,
+  activeFilters,
+  resetFilters,
+}: FilterPanelProps) {
+  return (
     <div className="space-y-6">
       <div>
         <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-stone-500">
@@ -114,6 +91,7 @@ export default function CatalogClient({
                   : "text-stone-600 hover:bg-stone-50"
               )}
             >
+              {c.icon && <span className="mr-2">{c.icon}</span>}
               {c.label}
             </button>
           ))}
@@ -201,9 +179,84 @@ export default function CatalogClient({
       )}
     </div>
   );
+}
+
+export default function CatalogClient({
+  products,
+  initialUse,
+  initialCategory,
+}: CatalogClientProps) {
+  const [category, setCategory] = useState<GrassCategory | "all">(
+    (initialCategory as GrassCategory) || "all"
+  );
+  const [use, setUse] = useState<GrassUse | "all">(
+    (initialUse as GrassUse) || "all"
+  );
+  const [priceMax, setPriceMax] = useState<number>(100000);
+  const [sort, setSort] = useState("default");
+  const [search, setSearch] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [petOnly, setPetOnly] = useState(false);
+  const [childOnly, setChildOnly] = useState(false);
+
+  const filtered = useMemo(() => {
+    let result = products.filter((p) => p.available);
+
+    if (category !== "all") result = result.filter((p) => p.category === category);
+    if (use !== "all") result = result.filter((p) => p.uses.includes(use));
+    if (petOnly) result = result.filter((p) => p.petFriendly);
+    if (childOnly) result = result.filter((p) => p.childFriendly);
+    result = result.filter((p) => p.pricePerM2 <= priceMax);
+    if (search) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          p.description.toLowerCase().includes(q)
+      );
+    }
+
+    switch (sort) {
+      case "price-asc": return [...result].sort((a, b) => a.pricePerM2 - b.pricePerM2);
+      case "price-desc": return [...result].sort((a, b) => b.pricePerM2 - a.pricePerM2);
+      case "name": return [...result].sort((a, b) => a.name.localeCompare(b.name));
+      default: return result;
+    }
+  }, [products, category, use, priceMax, sort, search, petOnly, childOnly]);
+
+  const activeFilters =
+    (category !== "all" ? 1 : 0) +
+    (use !== "all" ? 1 : 0) +
+    (petOnly ? 1 : 0) +
+    (childOnly ? 1 : 0) +
+    (priceMax < 100000 ? 1 : 0);
+
+  const resetFilters = () => {
+    setCategory("all");
+    setUse("all");
+    setPriceMax(100000);
+    setPetOnly(false);
+    setChildOnly(false);
+    setSearch("");
+  };
+
+  const filterPanelProps: FilterPanelProps = {
+    category,
+    setCategory,
+    use,
+    setUse,
+    priceMax,
+    setPriceMax,
+    petOnly,
+    setPetOnly,
+    childOnly,
+    setChildOnly,
+    activeFilters,
+    resetFilters,
+  };
 
   return (
-    <div className="container-max section-padding">
+    <div className="container-max px-4 pt-8 pb-16 sm:px-6 lg:px-8 lg:pb-24">
       {/* Mobile filter button + search */}
       <div className="mb-6 flex items-center gap-3">
         <div className="relative flex-1">
@@ -241,7 +294,7 @@ export default function CatalogClient({
       <div className="flex gap-8">
         {/* Sidebar desktop */}
         <aside className="hidden w-56 shrink-0 lg:block">
-          <FilterPanel />
+          <FilterPanel {...filterPanelProps} />
         </aside>
 
         {/* Grid */}
@@ -306,7 +359,7 @@ export default function CatalogClient({
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <FilterPanel />
+              <FilterPanel {...filterPanelProps} />
             </motion.div>
           </>
         )}

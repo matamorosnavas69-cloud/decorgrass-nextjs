@@ -13,14 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["shopping", "lifestyle"],
     icons: [
       {
-        src: "/icons/icon-192x192.png",
-        sizes: "192x192",
-        type: "image/png",
-        purpose: "maskable",
-      },
-      {
-        src: "/icons/icon-512x512.png",
-        sizes: "512x512",
+        src: "/logo-dg.png",
+        sizes: "1254x1254",
         type: "image/png",
         purpose: "any",
       },
@@ -31,14 +25,12 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Cotizar",
         description: "Calcula el precio de tu proyecto",
         url: "/cotizador",
-        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
       },
       {
         name: "Catálogo",
         short_name: "Catálogo",
         description: "Ver todos los productos",
         url: "/catalogo",
-        icons: [{ src: "/icons/icon-96x96.png", sizes: "96x96" }],
       },
     ],
   };

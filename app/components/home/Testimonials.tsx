@@ -45,7 +45,7 @@ export default function Testimonials() {
                   <Star key={s} className="h-4 w-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="mb-4 text-sm text-stone-600 leading-relaxed">"{t.text}"</p>
+              <p className="mb-4 text-sm text-stone-600 leading-relaxed">&ldquo;{t.text}&rdquo;</p>
               <div className="border-t border-stone-100 pt-4">
                 <p className="font-semibold text-stone-900 text-sm">{t.name}</p>
                 <p className="text-xs text-stone-400">{t.location} · {t.projectType}</p>

@@ -1,26 +1,183 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useInView, animate } from "framer-motion";
 import { MessageCircle, ChevronDown, Play } from "lucide-react";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
 
-export default function Hero() {
+interface HeroSlide {
+  image: string;
+  title: string;
+  highlight: string;
+  description: string;
+  href: string;
+  cta: string;
+}
+
+const SLIDES: HeroSlide[] = [
+  {
+    image: "/hero/hero-1.png",
+    title: "Transforma tu espacio",
+    highlight: "con grama sintética",
+    description:
+      "Jardines, terrazas, balcones y canchas deportivas. Grama premium con instalación incluida y garantía de hasta 5 años.",
+    href: "/cotizador",
+    cta: "Cotizar mi proyecto",
+  },
+  {
+    image: "/hero/hero-2.png",
+    title: "Terrazas y balcones",
+    highlight: "con vista y confort",
+    description:
+      "Convierte cualquier balcón o azotea en un espacio verde, sin mantenimiento y listo para disfrutar todo el año.",
+    href: "/catalogo?categoria=paisajismo-verde",
+    cta: "Ver grama para terrazas",
+  },
+  {
+    image: "/hero/hero-3.png",
+    title: "Zonas seguras",
+    highlight: "para que jueguen",
+    description:
+      "Grama suave y resistente, ideal para parques infantiles y zonas de juego en casa.",
+    href: "/catalogo?categoria=tapicesped",
+    cta: "Ver grama para niños",
+  },
+  {
+    image: "/hero/parque.png",
+    title: "Parques infantiles",
+    highlight: "en terrazas y azoteas",
+    description:
+      "Instalamos grama premium en zonas de juego con vista a la ciudad, seguras y fáciles de mantener.",
+    href: "/catalogo?uso=zonas-infantiles",
+    cta: "Ver grama para parques",
+  },
+  {
+    image: "/hero/cancha.png",
+    title: "Canchas deportivas",
+    highlight: "de nivel profesional",
+    description:
+      "Grama certificada FIFA Quality Concept para fútbol, tenis, golf y más.",
+    href: "/catalogo?categoria=futbol",
+    cta: "Ver grama deportiva",
+  },
+  {
+    image: "/hero/cancha2.png",
+    title: "Rendimiento",
+    highlight: "que resiste la exigencia",
+    description:
+      "Fibra de alta densidad diseñada para el tráfico intenso de canchas profesionales.",
+    href: "/catalogo?categoria=futbol",
+    cta: "Explorar catálogo deportivo",
+  },
+  {
+    image: "/hero/cancha3.png",
+    title: "Instalación",
+    highlight: "profesional garantizada",
+    description:
+      "Nuestro equipo instala tu cancha con los mismos estándares de un estadio profesional.",
+    href: "/instalacion",
+    cta: "Conocer instalación",
+  },
+  {
+    image: "/hero/cancha4.png",
+    title: "Proyectos",
+    highlight: "que enamoran",
+    description:
+      "Conoce las canchas e instalaciones deportivas que hemos entregado en toda Colombia.",
+    href: "/proyectos",
+    cta: "Ver proyectos",
+  },
+];
+
+function HeroCarousel({ index }: { index: number }) {
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
-      {/* Background */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage:
-            "url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1920&q=80')",
-        }}
-      />
+    <>
+      <AnimatePresence>
+        <motion.div
+          key={index}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2 }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url('${SLIDES[index].image}')` }}
+        />
+      </AnimatePresence>
+    </>
+  );
+}
+
+const STATS = [
+  { value: 500, suffix: "+", label: "Proyectos Completados" },
+  { value: 100000, suffix: "+ m²", label: "Instalados" },
+  { value: 10, suffix: "+", label: "Años de Experiencia" },
+  { value: 100, suffix: "%", label: "Clientes Satisfechos" },
+];
+
+function StatCounter({ value, suffix, label }: (typeof STATS)[number]) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const [display, setDisplay] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(0, value, {
+      duration: 1.6,
+      ease: "easeOut",
+      onUpdate: (v) => setDisplay(Math.round(v)),
+    });
+    return controls.stop;
+  }, [inView, value]);
+
+  return (
+    <div ref={ref} className="text-center">
+      <div className="text-3xl font-bold text-brand-primary sm:text-4xl">
+        {display.toLocaleString("es-CO")}
+        {suffix}
+      </div>
+      <div className="mt-1 text-sm text-stone-500">{label}</div>
+    </div>
+  );
+}
+
+export default function Hero() {
+  const [index, setIndex] = useState(0);
+  const slide = SLIDES[index];
+
+  useEffect(() => {
+    const id = setInterval(() => setIndex((i) => (i + 1) % SLIDES.length), 6000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <section className="relative min-h-screen">
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+      {/* Background carousel, each slide links to its own page */}
+      <Link href={slide.href} className="absolute inset-0 block" aria-label={`${slide.title} ${slide.highlight}`}>
+        <HeroCarousel index={index} />
+      </Link>
+
       {/* Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
 
       {/* Accent stripe */}
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-grass-gradient" />
+      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-1 bg-grass-gradient" />
+
+      {/* Slide dots */}
+      <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+        {SLIDES.map((_, i) => (
+          <button
+            key={i}
+            type="button"
+            onClick={() => setIndex(i)}
+            aria-label={`Imagen ${i + 1}`}
+            className={`h-1.5 rounded-full transition-all ${
+              i === index ? "w-6 bg-white" : "w-1.5 bg-white/50"
+            }`}
+          />
+        ))}
+      </div>
 
       {/* Content */}
       <div className="container-max relative z-10 px-4 py-32 text-center sm:px-6 lg:px-8">
@@ -35,26 +192,33 @@ export default function Hero() {
           </span>
         </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="mb-6 text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-7xl"
-        >
-          Transforma tu espacio
-          <br />
-          <span className="text-grass-400">con grama sintética</span>
-        </motion.h1>
+        <AnimatePresence mode="wait">
+          <motion.h1
+            key={`title-${index}`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.6 }}
+            className="mb-6 text-4xl font-bold leading-tight text-white sm:text-5xl lg:text-7xl"
+          >
+            {slide.title}
+            <br />
+            <span className="text-grass-400">{slide.highlight}</span>
+          </motion.h1>
+        </AnimatePresence>
 
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-white/85 sm:text-xl"
-        >
-          Jardines, terrazas, balcones y canchas deportivas. Grama premium con instalación
-          incluida y garantía de hasta 5 años.
-        </motion.p>
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={`desc-${index}`}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.6 }}
+            className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-white/85 sm:text-xl"
+          >
+            {slide.description}
+          </motion.p>
+        </AnimatePresence>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -62,9 +226,19 @@ export default function Hero() {
           transition={{ duration: 0.8, delay: 0.3 }}
           className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center"
         >
-          <Link href="/cotizador" className="btn-primary min-w-[200px] text-base px-8 py-4 shadow-2xl">
-            Cotizar mi proyecto
-          </Link>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={`cta-${index}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Link href={slide.href} className="btn-primary min-w-[200px] text-base px-8 py-4 shadow-2xl">
+                {slide.cta}
+              </Link>
+            </motion.span>
+          </AnimatePresence>
           <Link
             href="/proyectos"
             className="inline-flex items-center gap-2 rounded-full border-2 border-white/60 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition-all hover:bg-white/10 hover:border-white"
@@ -117,6 +291,16 @@ export default function Hero() {
       >
         <ChevronDown className="h-6 w-6 text-white/60" />
       </motion.div>
+    </div>
+
+      {/* Stats strip, overlapping the bottom edge */}
+      <div className="absolute inset-x-0 -bottom-10 z-20 hidden justify-center px-4 sm:flex">
+        <div className="grid w-full max-w-3xl grid-cols-4 gap-4 rounded-2xl bg-white p-6 shadow-2xl">
+          {STATS.map((s) => (
+            <StatCounter key={s.label} {...s} />
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

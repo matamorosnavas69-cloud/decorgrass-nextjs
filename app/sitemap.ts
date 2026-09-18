@@ -1,9 +1,11 @@
 import type { MetadataRoute } from "next";
-import { products } from "@/app/lib/data";
-import { projects } from "@/app/lib/data";
+import { getAllProducts } from "@/app/lib/queries/products";
+import { getAllProjects } from "@/app/lib/queries/projects";
+import { SITE_URL } from "@/app/lib/site";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://decorgrass.com";
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = SITE_URL;
+  const [products, projects] = await Promise.all([getAllProducts(), getAllProjects()]);
 
   const staticPages = [
     { url: base, priority: 1.0 },

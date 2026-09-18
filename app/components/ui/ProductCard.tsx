@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Heart, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn, formatCOP, buildWhatsAppURL } from "@/app/lib/utils";
 import { useWishlist } from "@/app/hooks/useWishlist";
-import type { GrassProduct } from "@/app/lib/data";
+import type { GrassProduct, GrassCategory } from "@/app/lib/data";
 
 interface ProductCardProps {
   product: GrassProduct;
@@ -16,6 +17,19 @@ const badgeStyles = {
   green: "badge-green",
   amber: "badge-amber",
   stone: "badge-stone",
+};
+
+const categoryIcons: Record<GrassCategory, string> = {
+  decorativa: "🌿",
+  deportiva: "🏅",
+  accesorios: "🐾",
+  "paisajismo-verde": "🌿",
+  "paisajismo-colores": "🎨",
+  curly: "🌀",
+  tenis: "🎾",
+  golf: "⛳",
+  tapicesped: "🟩",
+  futbol: "⚽",
 };
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
@@ -39,9 +53,19 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
         {/* Image */}
         <Link href={`/producto/${product.slug}`} className="block">
           <div className="relative h-56 overflow-hidden bg-grass-50">
-            <div className="flex h-full items-center justify-center text-7xl transition-transform duration-500 group-hover:scale-110">
-              🌿
-            </div>
+            {product.images[0] ? (
+              <Image
+                src={product.images[0]}
+                alt={product.name}
+                fill
+                sizes="(min-width: 1280px) 33vw, (min-width: 640px) 50vw, 100vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center text-7xl">
+                {categoryIcons[product.category]}
+              </div>
+            )}
 
             {/* Badge */}
             {product.badge && (

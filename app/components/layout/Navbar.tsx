@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Menu, X, MessageCircle, Search, Leaf } from "lucide-react";
+import { Menu, X, MessageCircle, ShoppingCart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/app/lib/utils";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
+import { useCart } from "@/app/hooks/useCart";
 
 const navLinks = [
   { href: "/catalogo", label: "Catálogo" },
@@ -17,11 +20,15 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const [scrolled, setScrolled] = useState(false);
+  const pathname = usePathname();
+  const hasDarkHero = pathname === "/";
+  const [scrolledState, setScrolledState] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const scrolled = !hasDarkHero || scrolledState;
+  const cartCount = useCart((s) => s.items.length);
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 20);
+    const handler = () => setScrolledState(window.scrollY > 20);
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
@@ -38,9 +45,7 @@ export default function Navbar() {
       <nav className="container-max flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-primary">
-            <Leaf className="h-5 w-5 text-white" />
-          </div>
+          <Image src="/logo-dg.png" alt="Decorgrass" width={32} height={32} className="h-8 w-8 rounded-lg" />
           <span className={cn("font-bold", scrolled ? "text-stone-900" : "text-white drop-shadow")}>
             Decor<span className="text-brand-light">grass</span>
           </span>
@@ -67,6 +72,21 @@ export default function Navbar() {
 
         {/* CTA + hamburger */}
         <div className="flex items-center gap-2">
+          <Link
+            href="/carrito"
+            aria-label="Carrito"
+            className={cn(
+              "relative flex h-9 w-9 items-center justify-center rounded-full transition-colors",
+              scrolled ? "text-stone-800 hover:bg-stone-100" : "text-white hover:bg-white/10"
+            )}
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {cartCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-primary text-[10px] font-bold text-white">
+                {cartCount}
+              </span>
+            )}
+          </Link>
           <a
             href={getWhatsAppContactURL()}
             target="_blank"

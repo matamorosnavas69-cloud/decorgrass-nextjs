@@ -4,8 +4,9 @@
     {
       "name": "decorgrass-nextjs",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--port", "3010"],
-      "port": 3010
+      "runtimeArgs": ["run", "dev"],
+      "port": 3010,
+      "autoPort": true
     }
   ]
 }
