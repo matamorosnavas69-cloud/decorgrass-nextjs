@@ -51,14 +51,6 @@ export async function getProductBySlug(slug: string): Promise<GrassProduct | nul
   return row ? toGrassProduct(row) : null;
 }
 
-export async function getProductsByUse(use: GrassUse): Promise<GrassProduct[]> {
-  const rows = await prisma.grassProduct.findMany({
-    where: { available: true, uses: { has: use } },
-    orderBy: { name: "asc" },
-  });
-  return rows.map(toGrassProduct);
-}
-
 export async function getRelatedProducts(
   productId: string,
   category: string,
