@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requirePermission } from "@/app/lib/authz";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/app/lib/db";
@@ -20,6 +21,7 @@ interface PageProps {
 }
 
 export default async function PedidoDetailPage({ params }: PageProps) {
+  await requirePermission("orders:read");
   const { id } = await params;
   const order = await prisma.order.findUnique({ where: { id }, include: { items: true } });
   if (!order) notFound();

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requirePermission } from "@/app/lib/authz";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/app/lib/db";
@@ -14,6 +15,7 @@ interface PageProps {
 }
 
 export default async function EditarProductoPage({ params }: PageProps) {
+  await requirePermission("products:write");
   const { id } = await params;
   const row = await prisma.grassProduct.findUnique({ where: { id } });
   if (!row) notFound();
