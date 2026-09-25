@@ -1,26 +1,34 @@
 import Link from "next/link";
-import { LayoutDashboard, Package, FolderOpen, MessageSquare, ShoppingBag, LogOut } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
+import { LayoutDashboard, Package, FolderOpen, MessageSquare, ShoppingBag, Users } from "lucide-react";
 import type { Metadata } from "next";
-import { getSession } from "@/app/lib/auth";
-import { logoutAction } from "@/app/lib/actions/auth";
+import AuthProvider from "@/app/components/auth/AuthProvider";
+import { getActor } from "@/app/lib/authz";
+import { ROLE_LABELS, hasPermission, type Permission } from "@/app/lib/rbac";
 
 export const metadata: Metadata = {
   title: "Dashboard — Decorgrass Admin",
   robots: { index: false, follow: false },
 };
 
-const navItems = [
+// Sin `permission` = visible para cualquier rol. El menú es solo comodidad:
+// la seguridad real la imponen el proxy, cada página y cada Server Action.
+const navItems: { href: string; label: string; icon: typeof Users; permission?: Permission }[] = [
   { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
-  { href: "/dashboard/leads", label: "Cotizaciones", icon: MessageSquare },
-  { href: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingBag },
-  { href: "/dashboard/productos", label: "Productos", icon: Package },
-  { href: "/dashboard/proyectos", label: "Proyectos", icon: FolderOpen },
+  { href: "/dashboard/leads", label: "Cotizaciones", icon: MessageSquare, permission: "leads:read" },
+  { href: "/dashboard/pedidos", label: "Pedidos", icon: ShoppingBag, permission: "orders:read" },
+  { href: "/dashboard/productos", label: "Productos", icon: Package, permission: "products:read" },
+  { href: "/dashboard/proyectos", label: "Proyectos", icon: FolderOpen, permission: "projects:read" },
+  { href: "/dashboard/usuarios", label: "Usuarios", icon: Users, permission: "users:read" },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+  const actor = await getActor();
+  const role = actor?.role ?? null;
+  const visibleItems = navItems.filter((item) => !item.permission || hasPermission(role, item.permission));
 
   return (
+    <AuthProvider>
     <div className="flex min-h-screen bg-stone-100">
       {/* Sidebar */}
       <aside className="w-64 shrink-0 bg-white border-r border-stone-200 flex flex-col">
@@ -34,7 +42,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           </Link>
         </div>
         <nav className="flex-1 p-4 space-y-1">
-          {navItems.map(({ href, label, icon: Icon }) => (
+          {visibleItems.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
@@ -46,22 +54,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
           ))}
         </nav>
         <div className="p-4 border-t border-stone-200 space-y-1">
-          {session && <p className="px-3 pb-1 text-xs text-stone-400 truncate">{session.email}</p>}
           <Link
             href="/"
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-stone-500 hover:text-stone-700 hover:bg-stone-50 transition-colors text-sm"
           >
             Volver al sitio
           </Link>
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-3 px-3 py-2.5 rounded-lg text-stone-500 hover:text-red-600 hover:bg-red-50 transition-colors text-sm"
-            >
-              <LogOut className="h-4 w-4" />
-              Cerrar sesión
-            </button>
-          </form>
+          <div className="flex items-center gap-3 px-3 py-2">
+            <UserButton />
+            {role && <span className="text-xs font-medium text-stone-500">{ROLE_LABELS[role]}</span>}
+          </div>
         </div>
       </aside>
 
@@ -70,5 +72,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
         {children}
       </main>
     </div>
+    </AuthProvider>
   );
 }

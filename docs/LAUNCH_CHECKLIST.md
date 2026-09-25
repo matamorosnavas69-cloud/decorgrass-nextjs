@@ -9,9 +9,10 @@ En **Project Settings → Environment Variables**, agregá estas para el entorno
 | Variable | Valor | Cómo obtenerlo |
 |---|---|---|
 | `DATABASE_URL` | La cadena de conexión de Neon | Ya la tenés en tu `.env` local — copiala tal cual (incluye `?sslmode=require`) |
-| `AUTH_SECRET` | Un string aleatorio largo (32+ caracteres) | Generalo con: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
-| `ADMIN_EMAIL` | El email real del administrador | El que va a usar el negocio para entrar a `/dashboard` |
-| `ADMIN_PASSWORD_HASH` | El hash bcrypt de la contraseña real | Generalo con: `node -e "console.log(require('bcryptjs').hashSync('TU-PASSWORD-REAL', 10))"` — nunca subas la contraseña en texto plano, solo el hash |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Llave pública de Clerk (`pk_live_...`) | Dashboard de Clerk → instancia de **producción** → API Keys (o `clerk env pull --instance prod`) |
+| `CLERK_SECRET_KEY` | Llave secreta de Clerk (`sk_live_...`) | Mismo lugar — nunca exponerla al cliente |
+| `NEXT_PUBLIC_CLERK_SIGN_IN_URL` | `/sign-in` | Fija |
+| `NEXT_PUBLIC_CLERK_SIGN_UP_URL` | `/sign-up` | Fija |
 | `SITE_URL` | `https://tu-dominio-real.com` | El dominio final una vez configurado (paso 3) |
 | `RESEND_API_KEY` | Tu API key de Resend | [resend.com](https://resend.com) → API Keys → Create |
 | `NOTIFICATION_EMAIL` | El email donde el equipo comercial quiere recibir avisos de leads nuevos | — |
@@ -19,7 +20,7 @@ En **Project Settings → Environment Variables**, agregá estas para el entorno
 | `WOMPI_INTEGRITY_SECRET` | Secreto de integridad | Mismo lugar que la anterior — nunca exponerlo al cliente |
 | `WOMPI_EVENTS_SECRET` | Secreto de eventos/webhooks | Mismo lugar — es el que verifica que un webhook realmente vino de Wompi |
 
-**Importante:** sin `AUTH_SECRET`, `ADMIN_EMAIL` y `ADMIN_PASSWORD_HASH` configuradas, el sitio en producción cae a la credencial de desarrollo (`admin@decorgrass.com` / `decorgrass2026`, definida en `app/lib/auth.ts`) — **cualquiera que la conozca entra al dashboard**. No lances a producción sin configurar estas tres.
+**Importante:** el login y los roles del panel dependen de Clerk. Antes de lanzar hay que (1) crear la instancia de **producción** de Clerk con `clerk deploy` (exige un dominio propio, no funciona sobre `vercel.app`), (2) activar en ella el claim de sesión `{"metadata": "{{user.public_metadata}}"}` y el registro solo por invitación, y (3) crear el primer administrador asignándole `{"role": "admin"}` en su *Public metadata*. Sin rol nadie entra al panel (deny-by-default).
 
 ## 2. Verificar el build de producción localmente
 
@@ -69,8 +70,9 @@ Marcá cada uno manualmente después del primer deploy:
 - [ ] `/producto/<cualquier-slug>` abre una ficha con precio e imágenes
 - [ ] `/cotizador` completa el wizard de 4 pasos y muestra confirmación
 - [ ] `/contacto` envía y muestra "Mensaje registrado"
-- [ ] `/dashboard` **sin sesión** redirige a `/login` (probalo en una ventana de incógnito)
-- [ ] Login con `ADMIN_EMAIL`/contraseña real funciona y entra a `/dashboard`
+- [ ] `/dashboard` **sin sesión** redirige a `/sign-in` (probalo en una ventana de incógnito)
+- [ ] Login del primer administrador funciona y entra a `/dashboard`
+- [ ] Una cuenta **sin rol** que intenta entrar termina en `/acceso-denegado`
 - [ ] La cotización y el contacto de los dos pasos anteriores aparecen en `/dashboard/leads`
 - [ ] Si configuraste Resend: llegó un email a `NOTIFICATION_EMAIL` por cada uno
 - [ ] Crear un producto de prueba desde `/dashboard/productos/nuevo` → aparece en `/catalogo` sin redeploy → **borralo o marcalo agotado** después de probar
@@ -82,5 +84,5 @@ Marcá cada uno manualmente después del primer deploy:
 ## 7. Después de lanzar
 
 - Borrá cualquier lead, producto o pedido de prueba que hayas creado durante la verificación.
-- Guardá `ADMIN_PASSWORD_HASH` y `AUTH_SECRET` en un lugar seguro (gestor de contraseñas del equipo) — si se pierden, hay que generar unos nuevos y todas las sesiones activas de admin se invalidan.
+- Guardá `CLERK_SECRET_KEY` en un lugar seguro (gestor de contraseñas del equipo). Si se filtra, regenerala en el dashboard de Clerk y actualizala en Vercel.
 - Contale al equipo comercial que ya pueden revisar `/dashboard/leads` (y recibirán email si configuraste Resend).

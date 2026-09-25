@@ -1,41 +1,25 @@
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { jwtVerify } from "jose";
+import { hasPermission, parseRole, requiredPermissionForPath } from "@/app/lib/rbac";
 
-const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET ?? "dev-only-secret-replace-in-prod-32-chars"
-);
-const COOKIE_NAME = "decorgrass-admin-session";
+const isDashboard = createRouteMatcher(["/dashboard(.*)"]);
 
-async function hasValidSession(request: NextRequest): Promise<boolean> {
-  const token = request.cookies.get(COOKIE_NAME)?.value;
-  if (!token) return false;
-  try {
-    await jwtVerify(token, SECRET);
-    return true;
-  } catch {
-    return false;
-  }
-}
+// Primera barrera: corta temprano por sesión y por rol. No es la única — cada
+// página y Server Action vuelve a verificar con requirePermission().
+export default clerkMiddleware(async (auth, req) => {
+  if (!isDashboard(req)) return;
 
-export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const authenticated = await hasValidSession(request);
+  const { userId, sessionClaims, redirectToSignIn } = await auth();
+  if (!userId) return redirectToSignIn({ returnBackUrl: req.url });
 
-  if (pathname.startsWith("/login")) {
-    if (authenticated) return NextResponse.redirect(new URL("/dashboard", request.url));
-    return NextResponse.next();
-  }
+  const role = parseRole(sessionClaims?.metadata?.role);
+  const required = requiredPermissionForPath(req.nextUrl.pathname);
+  const allowed = role !== null && (required === null || hasPermission(role, required));
 
-  if (!authenticated) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("from", pathname);
-    return NextResponse.redirect(loginUrl);
-  }
+  if (!allowed) return NextResponse.redirect(new URL("/acceso-denegado", req.url));
+});
 
-  return NextResponse.next();
-}
-
+// Solo las rutas que usan sesión: la tienda pública queda fuera y sigue estática.
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/dashboard/:path*", "/sign-in(.*)", "/sign-up(.*)", "/acceso-denegado", "/__clerk/:path*"],
 };

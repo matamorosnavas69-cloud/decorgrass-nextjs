@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requirePermission } from "@/app/lib/authz";
+import { hasPermission } from "@/app/lib/rbac";
 import { prisma } from "@/app/lib/db";
 import LeadStatusSelect from "./LeadStatusSelect";
 
 export const metadata: Metadata = { title: "Cotizaciones — Dashboard" };
 
 export default async function LeadsPage() {
+  const { role } = await requirePermission("leads:read");
+  const canWrite = hasPermission(role, "leads:write");
   const leads = await prisma.lead.findMany({
     orderBy: { createdAt: "desc" },
     include: { product: { select: { name: true } } },
@@ -49,7 +53,7 @@ export default async function LeadsPage() {
                       {lead.createdAt.toLocaleDateString("es-CO", { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
                     <td className="px-6 py-3">
-                      <LeadStatusSelect leadId={lead.id} status={lead.status} />
+                      <LeadStatusSelect leadId={lead.id} status={lead.status} readOnly={!canWrite} />
                     </td>
                     <td className="px-6 py-3 text-right">
                       <Link href={`/dashboard/leads/${lead.id}`} className="text-brand-primary hover:underline text-xs font-medium">
