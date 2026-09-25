@@ -128,7 +128,7 @@ export const solutions = [
     description: "Transforma tu patio con grama sintética de alta calidad que luce natural todo el año.",
     icon: "🏡",
     href: "/catalogo?uso=jardines",
-    image: "/proyectos/proyecto-1/despues-1.jpg",
+    image: "/proyectos/luxury/WhatsApp_Image_2025-03-15_at_10.57.28_AM.jpeg",
   },
   {
     title: "Terraza más verde",
