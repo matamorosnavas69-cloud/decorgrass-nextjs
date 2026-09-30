@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requirePermission } from "@/app/lib/authz";
 import { ArrowLeft } from "lucide-react";
 import { createProject } from "@/app/lib/actions/projects";
 import ProjectForm from "../ProjectForm";
 
 export const metadata: Metadata = { title: "Nuevo proyecto — Dashboard" };
 
-export default function NuevoProyectoPage() {
+export default async function NuevoProyectoPage() {
+  await requirePermission("projects:write");
   return (
     <div className="p-8 max-w-3xl">
       <Link href="/dashboard/proyectos" className="mb-6 inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700">

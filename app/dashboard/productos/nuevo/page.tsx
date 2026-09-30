@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requirePermission } from "@/app/lib/authz";
 import { ArrowLeft } from "lucide-react";
 import { createProduct } from "@/app/lib/actions/products";
 import ProductForm from "../ProductForm";
 
 export const metadata: Metadata = { title: "Nuevo producto — Dashboard" };
 
-export default function NuevoProductoPage() {
+export default async function NuevoProductoPage() {
+  await requirePermission("products:write");
   return (
     <div className="p-8 max-w-3xl">
       <Link href="/dashboard/productos" className="mb-6 inline-flex items-center gap-1.5 text-sm text-stone-500 hover:text-stone-700">

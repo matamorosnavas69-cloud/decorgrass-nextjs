@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
+import { requirePermission } from "@/app/lib/authz";
 import { parseProductForm } from "@/app/lib/validations/product";
 
 export type ProductFormState = { error?: string };
 
 export async function createProduct(_prev: ProductFormState, formData: FormData): Promise<ProductFormState> {
-  await requireAdmin();
+  await requirePermission("products:write");
   const { parsed, arrays } = parseProductForm(formData);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   const data = parsed.data;
@@ -37,7 +37,7 @@ export async function updateProduct(
   _prev: ProductFormState,
   formData: FormData
 ): Promise<ProductFormState> {
-  await requireAdmin();
+  await requirePermission("products:write");
   const { parsed, arrays } = parseProductForm(formData);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   const data = parsed.data;
@@ -63,7 +63,7 @@ export async function updateProduct(
 
 /** Marca agotado/disponible en vez de borrar — más seguro para el catálogo público. */
 export async function toggleProductAvailability(id: string): Promise<void> {
-  await requireAdmin();
+  await requirePermission("products:write");
   const product = await prisma.grassProduct.findUniqueOrThrow({ where: { id } });
   await prisma.grassProduct.update({ where: { id }, data: { available: !product.available } });
 

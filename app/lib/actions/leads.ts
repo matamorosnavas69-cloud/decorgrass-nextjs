@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
+import { requirePermission } from "@/app/lib/authz";
 import { getProductBySlug } from "@/app/lib/queries/products";
 import { calculateQuote, formatCOP } from "@/app/lib/utils";
 import { notifyNewLead } from "@/app/lib/email";
@@ -92,7 +92,7 @@ export async function createContactLead(input: unknown): Promise<LeadActionResul
 /* ── Acciones de admin (requieren sesión) ──────────────────────── */
 
 export async function updateLeadStatus(id: string, status: LeadStatus): Promise<void> {
-  await requireAdmin();
+  await requirePermission("leads:write");
   await prisma.lead.update({ where: { id }, data: { status } });
   revalidatePath("/dashboard/leads");
   revalidatePath(`/dashboard/leads/${id}`);
@@ -100,7 +100,7 @@ export async function updateLeadStatus(id: string, status: LeadStatus): Promise<
 }
 
 export async function updateLeadNotes(id: string, notes: string): Promise<void> {
-  await requireAdmin();
+  await requirePermission("leads:write");
   await prisma.lead.update({ where: { id }, data: { notes } });
   revalidatePath(`/dashboard/leads/${id}`);
 }
