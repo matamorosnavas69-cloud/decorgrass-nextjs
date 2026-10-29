@@ -36,21 +36,24 @@ export default async function ProductPage({ params }: PageProps) {
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
-  const jsonLd = {
+  const jsonLd: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
     name: product.name,
     description: product.description,
     brand: { "@type": "Brand", name: "Decorgrass" },
-    offers: {
+  };
+
+  if (product.priceUnitStatus !== "POR_VERIFICAR") {
+    jsonLd.offers = {
       "@type": "Offer",
       priceCurrency: "COP",
       price: product.pricePerM2,
       availability: product.available
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
-    },
-  };
+    };
+  }
 
   return (
     <>

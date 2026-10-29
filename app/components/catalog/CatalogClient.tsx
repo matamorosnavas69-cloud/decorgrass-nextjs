@@ -206,7 +206,9 @@ export default function CatalogClient({
     if (use !== "all") result = result.filter((p) => p.uses.includes(use));
     if (petOnly) result = result.filter((p) => p.petFriendly);
     if (childOnly) result = result.filter((p) => p.childFriendly);
-    result = result.filter((p) => p.pricePerM2 <= priceMax);
+    result = result.filter(
+      (p) => p.priceUnitStatus === "POR_VERIFICAR" || p.pricePerM2 <= priceMax
+    );
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(

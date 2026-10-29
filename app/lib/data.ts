@@ -21,6 +21,10 @@ export type GrassUse =
 
 export interface GrassProduct {
   id: string;
+  referenceCode?: string;
+  sourceReference?: string;
+  certificationStatus?: "VERIFICADA" | "POR_VERIFICAR";
+  priceUnitStatus?: "VERIFICADA" | "POR_VERIFICAR";
   name: string;
   slug: string;
   description: string;
@@ -139,7 +143,7 @@ export const solutions = [
   },
   {
     title: "Zona segura para niños",
-    description: "Grama suave, acolchada y sin toxinas para que tus hijos jueguen tranquilos.",
+    description: "Opciones de grama suave y acolchada para zonas de juego; consulta la ficha técnica de cada referencia.",
     icon: "🧒",
     href: "/catalogo?uso=zonas-infantiles",
     image: "/soluciones/ninos.jpg",
@@ -160,7 +164,7 @@ export const solutions = [
   },
   {
     title: "Cancha deportiva",
-    description: "Canchas de fútbol, tenis y pádel con grama certificada y garantía de 5 años.",
+    description: "Opciones para canchas de fútbol, tenis y pádel, con especificaciones y documentación según la referencia.",
     icon: "⚽",
     href: "/catalogo?uso=deportiva",
     image: "/soluciones/deportiva.png",
@@ -168,10 +172,10 @@ export const solutions = [
 ];
 
 export const benefits = [
-  { icon: "✅", title: "Instalación profesional", description: "Equipo certificado con años de experiencia." },
+  { icon: "✅", title: "Instalación profesional", description: "Alcance, materiales y condiciones definidos para cada proyecto." },
   { icon: "🌿", title: "Materiales premium", description: "Grama de alta calidad resistente al sol y lluvia." },
   { icon: "💧", title: "Fácil mantenimiento", description: "Sin cortar, abonar ni regar. Solo limpiar ocasionalmente." },
-  { icon: "🐕", title: "Ideal para mascotas", description: "Materiales no tóxicos y drenaje eficiente." },
+  { icon: "🐕", title: "Opciones para mascotas", description: "Consulta materiales, drenaje y cuidados de cada referencia." },
   { icon: "💦", title: "Drenaje eficiente", description: "Sistema de drenaje integrado que evita encharcamientos." },
   { icon: "🎨", title: "Apariencia natural", description: "Fibras multitonales que imitan el césped real." },
   { icon: "📞", title: "Asesoría personalizada", description: "Te ayudamos a elegir la grama perfecta para tu espacio." },

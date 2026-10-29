@@ -12,31 +12,18 @@ interface ProductDetailsProps {
   product: GrassProduct;
 }
 
-const COMPLIANCE_ROWS = [
-  { label: "ASTM", value: "Sí" },
-  { label: "EN", value: "Parcial" },
-  { label: "DIN", value: "Sí" },
-  { label: "TRACE", value: "Sí" },
-  { label: "SGS", value: "Sí" },
-  { label: "Ensayo UV – EN ISO 20105", value: "Grey Scale 4–5, sin cambio visual" },
-  { label: "Yarn Breaking Strength – ASTM D2256", value: "≥110 N" },
-  { label: "Pill Burn – ASTM D2859", value: "Pass" },
-  { label: "Yarn Melt Point – ASTM D789", value: "100°C" },
-];
-
-const COMPLIANCE_HEIGHTS = ["20mm", "30mm", "40mm"];
-
 export default function ProductDetails({ product }: ProductDetailsProps) {
   const { toggle, has } = useWishlist();
   const wished = has(product.id);
+  const hasVerifiedUnit = product.priceUnitStatus !== "POR_VERIFICAR";
 
   const [selectedColor, setSelectedColor] = useState(product.availableColors[0] || "");
   const [selectedHeight, setSelectedHeight] = useState(product.availableHeights[0] || "");
 
   const whatsappURL = buildWhatsAppURL({
     productName: `${product.name} (${selectedHeight}, ${selectedColor})`,
-    pricePerM2: product.pricePerM2,
-    message: `Me interesa la grama ${product.name}. ¿Pueden darme más información y cotización?`,
+    pricePerM2: hasVerifiedUnit ? product.pricePerM2 : undefined,
+    message: `Me interesa ${product.name}${product.referenceCode ? `, referencia ${product.referenceCode}` : ""}. ¿Pueden confirmar la unidad comercial, disponibilidad y cotización?`,
   });
 
   return (
@@ -75,11 +62,47 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         <span className="text-4xl font-bold text-brand-primary">
           {formatCOP(product.pricePerM2)}
         </span>
-        <span className="text-stone-400">/ m²</span>
+        <span className="text-stone-400">{hasVerifiedUnit ? "/ m²" : "precio registrado"}</span>
       </div>
+      {!hasVerifiedUnit && (
+        <p className="-mt-4 text-sm font-medium text-amber-700">
+          Unidad comercial y alcance por confirmar antes de cotizar.
+        </p>
+      )}
 
       {/* Description */}
       <p className="text-stone-600 leading-relaxed">{product.description}</p>
+
+      {product.referenceCode && (
+        <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-wider text-stone-400">
+            Referencia y documentación
+          </p>
+          <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+            <div>
+              <dt className="text-stone-400">Código</dt>
+              <dd className="font-semibold text-stone-800">{product.referenceCode}</dd>
+            </div>
+            <div>
+              <dt className="text-stone-400">Certificaciones</dt>
+              <dd className="font-semibold text-amber-700">
+                {product.certificationStatus === "VERIFICADA" ? "Verificadas" : "Por verificar"}
+              </dd>
+            </div>
+            {product.sourceReference && (
+              <div className="sm:col-span-2">
+                <dt className="text-stone-400">Fuente comercial</dt>
+                <dd className="font-medium text-stone-700">{product.sourceReference}</dd>
+              </div>
+            )}
+          </dl>
+          {product.certificationStatus !== "VERIFICADA" && (
+            <p className="mt-3 text-xs leading-relaxed text-stone-500">
+              No se atribuyen normas o certificaciones hasta contar con un documento aplicable a esta referencia.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Specs */}
       <div className="grid grid-cols-3 gap-3">
@@ -142,40 +165,6 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         </div>
       )}
 
-      {/* Compliance table */}
-      {product.category === "paisajismo-verde" &&
-        COMPLIANCE_HEIGHTS.includes(product.fiberHeight) && (
-          <div>
-            <p className="label-field mb-3">Cumplimiento de normas y certificaciones</p>
-            <div className="overflow-hidden rounded-xl border border-stone-200">
-              <table className="w-full border-collapse text-sm">
-                <thead>
-                  <tr className="bg-grass-50">
-                    <th className="border-b border-stone-200 px-3 py-2 text-left font-semibold text-stone-700">
-                      Norma / certificación
-                    </th>
-                    <th className="border-b border-stone-200 px-3 py-2 text-right font-semibold text-stone-700">
-                      {product.fiberHeight}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {COMPLIANCE_ROWS.map((row, i) => (
-                    <tr key={row.label} className={i % 2 === 0 ? "bg-stone-50" : "bg-white"}>
-                      <td className="border-b border-stone-200 px-3 py-2 font-medium text-stone-700 last:border-b-0">
-                        {row.label}
-                      </td>
-                      <td className="border-b border-stone-200 px-3 py-2 text-right text-stone-600 last:border-b-0">
-                        {row.value}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
       {/* Benefits */}
       <div>
         <p className="label-field mb-3">Beneficios</p>
@@ -197,7 +186,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       </div>
 
       {/* Calculator */}
-      <M2Calculator product={product} />
+      {hasVerifiedUnit ? (
+        <M2Calculator product={product} />
+      ) : (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+          La calculadora está desactivada para esta referencia hasta confirmar la unidad del precio.
+        </div>
+      )}
 
       {/* Main CTA */}
       <a
@@ -219,7 +214,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           className="btn-whatsapp w-full justify-center py-3.5"
         >
           <MessageCircle className="h-5 w-5" />
-          Cotizar por WhatsApp — {formatCOP(product.pricePerM2)}/m²
+          {hasVerifiedUnit
+            ? `Cotizar por WhatsApp — ${formatCOP(product.pricePerM2)}/m²`
+            : "Consultar unidad y cotización por WhatsApp"}
         </a>
       </div>
     </div>

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "status": "PUBLICADO_LOCAL_PENDIENTE_APROBACION",
+  "asOfDate": "2026-10-28",
+  "sourceWorkbook": {
+    "path": "public/productos/PRODUCTOS PAGINA/lista de productos paginas.xlsx",
+    "sheet": "sebas"
+  },
+  "products": [
+    {
+      "referenceCode": "003",
+      "sourceRange": "A5:D5",
+      "name": "Paisajismo de 20 mm liviana (Basic o Essence) REALT.",
+      "priceCop": 45000,
+      "priceUnitStatus": "POR_VERIFICAR",
+      "certificationStatus": "POR_VERIFICAR",
+      "sourceImages": ["3.JPEG", "3.1.JPEG"],
+      "media": ["public/productos/catalogo/003/principal.webp", "public/productos/catalogo/003/perfil.webp"],
+      "textureMediaStatus": "FALTA_CAPTURA_REAL"
+    },
+    {
+      "referenceCode": "013",
+      "sourceRange": "A15:D15",
+      "name": "Paisajismo 40 mm CCG",
+      "priceCop": 61000,
+      "priceUnitStatus": "POR_VERIFICAR",
+      "certificationStatus": "POR_VERIFICAR",
+      "sourceImages": ["13.JPEG", "13.1.JPEG"],
+      "media": ["public/productos/catalogo/013/principal.webp", "public/productos/catalogo/013/perfil.webp"],
+      "textureMediaStatus": "FALTA_CAPTURA_REAL"
+    },
+    {
+      "referenceCode": "014",
+      "sourceRange": "A16:D16",
+      "name": "Paisajismo 40 mm pesada trevi REALT.",
+      "priceCop": 76000,
+      "priceUnitStatus": "POR_VERIFICAR",
+      "certificationStatus": "POR_VERIFICAR",
+      "sourceImages": ["14.JPEG", "14.1.JPEG"],
+      "media": ["public/productos/catalogo/014/principal.webp", "public/productos/catalogo/014/perfil.webp"],
+      "textureMediaStatus": "FALTA_CAPTURA_REAL"
+    }
+  ],
+  "editingPolicy": "Precise object edit only: background, exposure, framing and contact shadow. Product color, fiber, density, pile, backing and geometry remain governed by the source photo.",
+  "pending": [
+    "Capturar video o GIF real de una mano interactuando con cada muestra.",
+    "Asignar certificaciones por referencia cuando se reciba la matriz documental.",
+    "Confirmar la unidad comercial de cada precio."
+  ]
+}

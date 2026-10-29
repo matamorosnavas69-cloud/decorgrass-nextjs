@@ -35,11 +35,12 @@ const categoryIcons: Record<GrassCategory, string> = {
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const { toggle, has } = useWishlist();
   const wished = has(product.id);
+  const hasVerifiedUnit = product.priceUnitStatus !== "POR_VERIFICAR";
 
   const whatsappURL = buildWhatsAppURL({
     productName: product.name,
-    pricePerM2: product.pricePerM2,
-    message: `Me interesa la grama ${product.name} (${product.fiberHeight}). ¿Podrían cotizarme?`,
+    pricePerM2: hasVerifiedUnit ? product.pricePerM2 : undefined,
+    message: `Me interesa ${product.name}${product.referenceCode ? `, referencia ${product.referenceCode}` : ""}. ¿Podrían confirmar unidad, disponibilidad y cotización?`,
   });
 
   return (
@@ -118,6 +119,9 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           <div className="mb-4 flex flex-wrap gap-1.5 text-xs">
             <span className="badge-stone">Fibra {product.fiberHeight}</span>
             <span className="badge-stone">Garantía {product.guarantee}</span>
+            {product.referenceCode && (
+              <span className="badge-stone">Referencia {product.referenceCode}</span>
+            )}
           </div>
 
           <div className="mt-auto">
@@ -125,8 +129,13 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               <span className="text-xl font-bold text-brand-primary">
                 {formatCOP(product.pricePerM2)}
               </span>
-              <span className="text-xs text-stone-400">/ m²</span>
+              <span className="text-xs text-stone-400">
+                {hasVerifiedUnit ? "/ m²" : "precio registrado"}
+              </span>
             </div>
+            {!hasVerifiedUnit && (
+              <p className="mb-3 text-xs font-medium text-amber-700">Unidad comercial por confirmar</p>
+            )}
 
             <div className="flex gap-2">
               <Link

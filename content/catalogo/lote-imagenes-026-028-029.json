@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "status": "PUBLICADO_LOCAL_PENDIENTE_APROBACION",
+  "asOfDate": "2026-10-28",
+  "sourceWorkbook": {
+    "path": "public/productos/PRODUCTOS PAGINA/lista de productos paginas.xlsx",
+    "sheet": "sebas"
+  },
+  "products": [
+    {
+      "referenceCode": "026",
+      "sourceRange": "A28:D28",
+      "sourceImages": ["26.1.JPEG", "26.2.JPEG"],
+      "media": ["public/productos/catalogo/026/principal.webp", "public/productos/catalogo/026/perfil.webp"],
+      "variantShown": "azul",
+      "pendingVariant": "blanco",
+      "certificationStatus": "POR_VERIFICAR",
+      "textureMediaStatus": "FALTA_CAPTURA_REAL"
+    },
+    {
+      "referenceCode": "028",
+      "sourceRange": "A30:D30",
+      "sourceImages": ["28.JPEG", "28.1.JPEG"],
+      "media": ["public/productos/catalogo/028/principal.webp", "public/productos/catalogo/028/perfil.webp"],
+      "certificationStatus": "POR_VERIFICAR",
+      "textureMediaStatus": "FALTA_CAPTURA_REAL"
+    },
+    {
+      "referenceCode": "029",
+      "sourceRange": "A31:D31",
+      "sourceImages": ["29.JPEG", "29.1.JPEG"],
+      "media": ["public/productos/catalogo/029/principal.webp", "public/productos/catalogo/029/perfil.webp"],
+      "certificationStatus": "POR_VERIFICAR",
+      "textureMediaStatus": "FALTA_CAPTURA_REAL"
+    }
+  ],
+  "deferred": {
+    "referenceCode": "023",
+    "reason": "Las dos fuentes disponibles son tomas laterales muy similares; falta una captura cenital real antes de publicar la galería."
+  }
+}
