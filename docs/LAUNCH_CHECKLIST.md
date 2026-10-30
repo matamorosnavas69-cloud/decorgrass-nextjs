@@ -19,7 +19,7 @@ En **Project Settings → Environment Variables**, agregá estas para el entorno
 | `WOMPI_INTEGRITY_SECRET` | Secreto de integridad | Mismo lugar que la anterior — nunca exponerlo al cliente |
 | `WOMPI_EVENTS_SECRET` | Secreto de eventos/webhooks | Mismo lugar — es el que verifica que un webhook realmente vino de Wompi |
 
-**Importante:** sin `AUTH_SECRET`, `ADMIN_EMAIL` y `ADMIN_PASSWORD_HASH` configuradas, el sitio en producción cae a la credencial de desarrollo (`admin@decorgrass.com` / `decorgrass2026`, definida en `app/lib/auth.ts`) — **cualquiera que la conozca entra al dashboard**. No lances a producción sin configurar estas tres.
+**Importante:** `AUTH_SECRET`, `ADMIN_EMAIL` y `ADMIN_PASSWORD_HASH` son obligatorias en producción. Si falta alguna, `/dashboard` y `/login` responden con error (500) en vez de aceptar la credencial de desarrollo (ver `app/lib/auth-config.ts`). Esto también aplica a los deploys de Preview: cárgalas ahí si quieres probar el login.
 
 ## 2. Verificar el build de producción localmente
 

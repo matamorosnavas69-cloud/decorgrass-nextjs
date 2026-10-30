@@ -2,9 +2,9 @@
  * Sesión de admin: JWT firmado en una cookie HttpOnly.
  *
  * No hay tabla de usuarios — un solo admin autenticado contra
- * ADMIN_EMAIL/ADMIN_PASSWORD_HASH (variables de entorno). Si no están
- * configuradas, cae a una credencial de desarrollo para no bloquear el
- * trabajo local (nunca se usa si las variables están presentes).
+ * ADMIN_EMAIL/ADMIN_PASSWORD_HASH (variables de entorno). Fuera de
+ * producción cae a una credencial de desarrollo; en producción, si faltan,
+ * lanza (ver auth-config.ts).
  */
 
 "use server";
@@ -13,20 +13,13 @@ import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { isRateLimited, recordFailedAttempt } from "@/app/lib/rate-limit";
+import { adminEmail, adminPasswordHash, authSecret } from "@/app/lib/auth-config";
 
-const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET ?? "dev-only-secret-replace-in-prod-32-chars"
-);
 const COOKIE_NAME = "decorgrass-admin-session";
 const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 días
 
 // ponytail: admin único vía env vars, sin tabla User — si el negocio necesita
 // varias personas con acceso propio, ahí sí se justifica un modelo AdminUser.
-const DEV_EMAIL = "admin@decorgrass.com";
-const DEV_PASSWORD_HASH = "$2b$10$oXdsZD.6nQ7Gi7UZzQwGF./WzewtnkKMbI67unU7xEKTwfeR01zne"; // "decorgrass2026"
-
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL ?? DEV_EMAIL).toLowerCase();
-const ADMIN_PASSWORD_HASH = process.env.ADMIN_PASSWORD_HASH ?? DEV_PASSWORD_HASH;
 
 export type AdminSession = { email: string };
 type AuthResult = { ok: boolean; error?: string };
@@ -36,7 +29,7 @@ async function setSessionCookie(session: AdminSession): Promise<void> {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_MAX_AGE}s`)
-    .sign(SECRET);
+    .sign(authSecret());
 
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
@@ -52,8 +45,9 @@ export async function getSession(): Promise<AdminSession | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) return null;
+  const secret = authSecret(); // fuera del try: si falta en producción debe fallar, no devolver null
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, secret);
     return payload as unknown as AdminSession;
   } catch {
     return null;
@@ -74,12 +68,12 @@ export async function login(email: string, password: string): Promise<AuthResult
     return { ok: false, error: "Demasiados intentos. Espera unos minutos e intenta de nuevo." };
   }
 
-  if (normalized !== ADMIN_EMAIL) {
+  if (normalized !== adminEmail()) {
     await recordFailedAttempt(normalized);
     return { ok: false, error: "Credenciales inválidas" };
   }
 
-  const match = await bcrypt.compare(password, ADMIN_PASSWORD_HASH);
+  const match = await bcrypt.compare(password, adminPasswordHash());
   if (!match) {
     await recordFailedAttempt(normalized);
     return { ok: false, error: "Credenciales inválidas" };

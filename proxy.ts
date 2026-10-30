@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
+import { authSecret } from "@/app/lib/auth-config";
 
-const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET ?? "dev-only-secret-replace-in-prod-32-chars"
-);
 const COOKIE_NAME = "decorgrass-admin-session";
 
 async function hasValidSession(request: NextRequest): Promise<boolean> {
   const token = request.cookies.get(COOKIE_NAME)?.value;
   if (!token) return false;
+  const secret = authSecret(); // sin AUTH_SECRET en producción lanza (500) en vez de aceptar el secreto público de dev
   try {
-    await jwtVerify(token, SECRET);
+    await jwtVerify(token, secret);
     return true;
   } catch {
     return false;
