@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
+import { requirePermission } from "@/app/lib/authz";
 import { parseProjectForm } from "@/app/lib/validations/project";
 
 export type ProjectFormState = { error?: string };
 
 export async function createProject(_prev: ProjectFormState, formData: FormData): Promise<ProjectFormState> {
-  await requireAdmin();
+  await requirePermission("projects:write");
   const { parsed, arrays } = parseProjectForm(formData);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   const data = parsed.data;
@@ -30,7 +30,7 @@ export async function updateProject(
   _prev: ProjectFormState,
   formData: FormData
 ): Promise<ProjectFormState> {
-  await requireAdmin();
+  await requirePermission("projects:write");
   const { parsed, arrays } = parseProjectForm(formData);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
   const data = parsed.data;
@@ -48,7 +48,7 @@ export async function updateProject(
 
 /** Despublica en vez de borrar — igual criterio que toggleProductAvailability. */
 export async function toggleProjectPublished(id: string): Promise<void> {
-  await requireAdmin();
+  await requirePermission("projects:write");
   const project = await prisma.project.findUniqueOrThrow({ where: { id } });
   await prisma.project.update({ where: { id }, data: { published: !project.published } });
 

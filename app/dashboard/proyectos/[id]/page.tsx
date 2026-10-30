@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requirePermission } from "@/app/lib/authz";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/app/lib/db";
@@ -13,6 +14,7 @@ interface PageProps {
 }
 
 export default async function EditarProyectoPage({ params }: PageProps) {
+  await requirePermission("projects:write");
   const { id } = await params;
   const project = await prisma.project.findUnique({ where: { id } });
   if (!project) notFound();

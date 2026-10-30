@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requirePermission } from "@/app/lib/authz";
 import { prisma } from "@/app/lib/db";
 import { formatCOP } from "@/app/lib/utils";
 
@@ -22,6 +23,7 @@ const STATUS_COLOR: Record<string, string> = {
 };
 
 export default async function PedidosPage() {
+  await requirePermission("orders:read");
   const orders = await prisma.order.findMany({
     orderBy: { createdAt: "desc" },
     include: { items: true },

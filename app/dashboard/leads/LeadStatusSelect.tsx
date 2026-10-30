@@ -12,13 +12,21 @@ const STATUS_OPTIONS: { value: LeadStatus; label: string }[] = [
   { value: "LOST", label: "Perdido" },
 ];
 
-export default function LeadStatusSelect({ leadId, status }: { leadId: string; status: LeadStatus }) {
+export default function LeadStatusSelect({
+  leadId,
+  status,
+  readOnly = false,
+}: {
+  leadId: string;
+  status: LeadStatus;
+  readOnly?: boolean;
+}) {
   const [isPending, startTransition] = useTransition();
 
   return (
     <select
       value={status}
-      disabled={isPending}
+      disabled={isPending || readOnly}
       onClick={(e) => e.stopPropagation()}
       onChange={(e) => {
         const next = e.target.value as LeadStatus;
