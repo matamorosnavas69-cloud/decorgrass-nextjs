@@ -61,7 +61,7 @@ const CERTIFICATIONS: { name: string; description: string }[] = [
   },
 ];
 
-const NORMAS_LABEL = "Normas verificadas:";
+const NORMAS_LABEL = "Normas de referencia:";
 
 const NORMAS: { code: string; description: string }[] = [
   { code: "ISO 2549", description: "Determina la masa por unidad de superficie de la grama." },
@@ -229,6 +229,9 @@ export default function CatalogHero() {
             </motion.span>
           ))}
         </div>
+        <p className="mt-3 text-xs text-stone-300">
+          Referencias generales del catálogo. La asignación por producto se actualizará con la matriz documental.
+        </p>
       </div>
     </div>
   );

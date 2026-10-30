@@ -1,6 +1,10 @@
 import { prisma } from "@/app/lib/db";
 import type { GrassProduct, GrassCategory, GrassUse } from "@/app/lib/data";
 import type { GrassProduct as PrismaGrassProduct } from "@prisma/client";
+import {
+  getPilotProductBySlug,
+  mergePilotProducts,
+} from "@/app/lib/catalog/pilot-products";
 
 // El schema guarda category/uses/badgeType como string llano; el frontend
 // sigue tipándolos como uniones (GrassCategory/GrassUse) porque el propio
@@ -35,7 +39,7 @@ function toGrassProduct(row: PrismaGrassProduct): GrassProduct {
 
 export async function getAllProducts(): Promise<GrassProduct[]> {
   const rows = await prisma.grassProduct.findMany({ orderBy: { name: "asc" } });
-  return rows.map(toGrassProduct);
+  return mergePilotProducts(rows.map(toGrassProduct));
 }
 
 export async function getFeaturedProducts(): Promise<GrassProduct[]> {
@@ -43,10 +47,12 @@ export async function getFeaturedProducts(): Promise<GrassProduct[]> {
     where: { featured: true, available: true },
     orderBy: { name: "asc" },
   });
-  return rows.map(toGrassProduct);
+  return mergePilotProducts(rows.map(toGrassProduct)).filter((product) => product.featured);
 }
 
 export async function getProductBySlug(slug: string): Promise<GrassProduct | null> {
+  const pilot = getPilotProductBySlug(slug);
+  if (pilot) return pilot;
   const row = await prisma.grassProduct.findUnique({ where: { slug } });
   return row ? toGrassProduct(row) : null;
 }
@@ -61,7 +67,10 @@ export async function getRelatedProducts(
     take: limit,
     orderBy: { name: "asc" },
   });
-  return rows.map(toGrassProduct);
+  const databaseProducts = rows.map(toGrassProduct);
+  return mergePilotProducts(databaseProducts)
+    .filter((product) => product.id !== productId && product.category === category && product.available)
+    .slice(0, limit);
 }
 
 export async function searchProducts(query: string): Promise<GrassProduct[]> {
@@ -75,5 +84,12 @@ export async function searchProducts(query: string): Promise<GrassProduct[]> {
     },
     orderBy: { name: "asc" },
   });
-  return rows.map(toGrassProduct);
+  const databaseProducts = rows.map(toGrassProduct);
+  const normalizedQuery = query.toLocaleLowerCase("es");
+  return mergePilotProducts(databaseProducts).filter(
+    (product) =>
+      product.available &&
+      (product.name.toLocaleLowerCase("es").includes(normalizedQuery) ||
+        product.description.toLocaleLowerCase("es").includes(normalizedQuery))
+  );
 }

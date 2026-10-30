@@ -1,0 +1,263 @@
+{
+  "schemaVersion": 1,
+  "status": "PILOTO_PUBLICADO_LOCAL",
+  "asOfDate": "2026-10-28",
+  "sourceWorkbook": {
+    "path": "C:/Users/USER/Downloads/LISTA DE PRECIOS SEBAS.xlsx",
+    "sheet": "sebas",
+    "catalogRange": "A3:D79"
+  },
+  "rules": {
+    "publishAllowed": true,
+    "originalsAreImmutable": true,
+    "certificationPolicy": "Una certificacion solo puede publicarse con evidencia documental aplicable a la referencia.",
+    "texturePolicy": "El recurso de textura debe provenir de una captura real. No se genera evidencia de textura o recuperacion con IA."
+  },
+  "products": [
+    {
+      "referenceCode": "004",
+      "sourceCode": 4,
+      "name": "Paisajismo 20 mm CCG",
+      "price": {
+        "amount": 51000,
+        "currency": "COP",
+        "unit": null,
+        "unitStatus": "POR_VERIFICAR"
+      },
+      "source": {
+        "sheet": "sebas",
+        "range": "A6:D6"
+      },
+      "confirmedTechnicalData": {
+        "nominalFiberHeight": "20 mm"
+      },
+      "content": {
+        "shortDescription": "Grama sintética paisajística de 20 mm, referencia 004 del catálogo Decorgrass.",
+        "description": "Referencia de grama sintética para paisajismo con altura nominal de 20 mm. El precio registrado es de 51.000 COP; la unidad comercial, composición, garantía y demás especificaciones requieren confirmación antes de publicar.",
+        "seoTitle": "Paisajismo 20 mm CCG | Decorgrass",
+        "metaDescription": "Consulta la referencia 004 de grama sintética Paisajismo 20 mm CCG. Precio, unidad y especificaciones sujetos a confirmación.",
+        "alt": {
+          "principal": "Vista superior de la muestra Paisajismo 20 mm CCG, referencia 004",
+          "profile": "Vista lateral de la muestra Paisajismo 20 mm CCG con fibras y base visibles"
+        }
+      },
+      "imageInventory": {
+        "status": "PARCIAL",
+        "sourceFiles": [
+          "public/productos/PRODUCTOS PAGINA/4.JPEG",
+          "public/productos/PRODUCTOS PAGINA/4.1.JPEG"
+        ],
+        "unconfirmedCandidates": [
+          "public/productos/grama paisajismo/foto producto/Paisajismo 20 mm Trafico NORMAL CCG..jpeg"
+        ]
+      },
+      "mediaRoles": {
+        "principal": {
+          "status": "EDITADO_PENDIENTE_APROBACION",
+          "source": "public/productos/PRODUCTOS PAGINA/4.JPEG",
+          "webp": "public/productos/catalogo/004/principal.webp",
+          "avif": "public/productos/catalogo/004/principal.avif"
+        },
+        "profile": {
+          "status": "EDITADO_PENDIENTE_APROBACION",
+          "source": "public/productos/PRODUCTOS PAGINA/4.1.JPEG",
+          "webp": "public/productos/catalogo/004/perfil.webp",
+          "avif": "public/productos/catalogo/004/perfil.avif"
+        },
+        "texture": {
+          "status": "FALTA_CAPTURA_REAL",
+          "source": null
+        }
+      },
+      "certifications": [],
+      "certificationStatus": "POR_VERIFICAR",
+      "pending": [
+        "Confirmar unidad comercial del precio.",
+        "Validar si la foto Trafico NORMAL CCG corresponde exactamente a esta referencia.",
+        "Grabar interaccion real de la mano con la fibra.",
+        "Confirmar especificaciones tecnicas y garantia con ficha del proveedor."
+      ],
+      "notes": "Candidato principal del piloto para validar el flujo de grama paisajistica."
+    },
+    {
+      "referenceCode": "024",
+      "sourceCode": 24,
+      "name": "Tenis 20 mm colores (naranj, azul oscuro, amarillo, rojo) TAISH.",
+      "price": {
+        "amount": 64000,
+        "currency": "COP",
+        "unit": null,
+        "unitStatus": "POR_VERIFICAR"
+      },
+      "source": {
+        "sheet": "sebas",
+        "range": "A26:D26",
+        "note": "falta tomarle foto a azul oscura"
+      },
+      "confirmedTechnicalData": {
+        "nominalFiberHeight": "20 mm",
+        "namedColors": [
+          "naranja",
+          "azul oscuro",
+          "amarillo",
+          "rojo"
+        ]
+      },
+      "content": {
+        "shortDescription": "Grama sintética de 20 mm para superficies de tenis, disponible en varias referencias de color.",
+        "description": "Referencia de grama sintética de 20 mm identificada para tenis. El Excel registra variantes naranja, azul oscuro, amarilla y roja. El piloto visual usa la variante naranja; la azul oscura sigue pendiente de fotografía. El precio registrado es de 64.000 COP y su unidad comercial debe confirmarse.",
+        "seoTitle": "Tenis 20 mm colores TAISH | Decorgrass",
+        "metaDescription": "Conoce la referencia 024 de grama sintética de 20 mm para tenis en varios colores. Unidad y especificaciones sujetas a confirmación.",
+        "alt": {
+          "principal": "Vista superior de la variante naranja Tenis 20 mm TAISH, referencia 024",
+          "profile": "Vista lateral de la variante naranja Tenis 20 mm TAISH con base visible"
+        }
+      },
+      "imageInventory": {
+        "status": "PARCIAL_VARIANTES_MEZCLADAS",
+        "sourceFiles": [
+          "public/productos/PRODUCTOS PAGINA/24.JPEG",
+          "public/productos/PRODUCTOS PAGINA/24.1.JPEG",
+          "public/productos/PRODUCTOS PAGINA/24.2.JPEG",
+          "public/productos/PRODUCTOS PAGINA/24.3.JPEG",
+          "public/productos/PRODUCTOS PAGINA/24.4.JPEG",
+          "public/productos/PRODUCTOS PAGINA/24.5.JPEG",
+          "public/productos/PRODUCTOS PAGINA/24.6.JPEG"
+        ],
+        "warning": "Las fotos corresponden a varias variantes de color y no constituyen tres vistas de una sola variante."
+      },
+      "mediaRoles": {
+        "principal": {
+          "status": "EDITADO_PENDIENTE_APROBACION",
+          "variant": "naranja",
+          "source": "public/productos/PRODUCTOS PAGINA/24.JPEG",
+          "webp": "public/productos/catalogo/024/principal-naranja.webp",
+          "avif": "public/productos/catalogo/024/principal-naranja.avif"
+        },
+        "profile": {
+          "status": "EDITADO_PENDIENTE_APROBACION",
+          "variant": "naranja",
+          "source": "public/productos/PRODUCTOS PAGINA/24.1.JPEG",
+          "webp": "public/productos/catalogo/024/perfil-naranja.webp",
+          "avif": "public/productos/catalogo/024/perfil-naranja.avif"
+        },
+        "redVariant": {
+          "status": "EDITADO_PENDIENTE_APROBACION",
+          "variant": "rojo",
+          "principalWebp": "public/productos/catalogo/024/principal-rojo.webp",
+          "principalAvif": "public/productos/catalogo/024/principal-rojo.avif",
+          "profileWebp": "public/productos/catalogo/024/perfil-rojo.webp",
+          "profileAvif": "public/productos/catalogo/024/perfil-rojo.avif"
+        },
+        "yellowVariant": {
+          "status": "EDITADO_PENDIENTE_APROBACION",
+          "variant": "amarillo",
+          "principalWebp": "public/productos/catalogo/024/principal-amarillo.webp",
+          "principalAvif": "public/productos/catalogo/024/principal-amarillo.avif",
+          "profileWebp": "public/productos/catalogo/024/perfil-amarillo.webp",
+          "profileAvif": "public/productos/catalogo/024/perfil-amarillo.avif"
+        },
+        "texture": {
+          "status": "FALTA_CAPTURA_REAL",
+          "source": null
+        }
+      },
+      "certifications": [],
+      "certificationStatus": "POR_VERIFICAR",
+      "pending": [
+        "Confirmar unidad comercial del precio.",
+        "Relacionar cada archivo con su color antes de editar.",
+        "Fotografiar la variante azul oscuro.",
+        "Elegir una variante para la primera galeria del piloto.",
+        "Capturar vista superior, perfil y video real para la misma variante.",
+        "Confirmar especificaciones tecnicas y garantia con ficha del proveedor."
+      ],
+      "notes": "Sirve para validar el manejo correcto de variantes sin presentar colores distintos como angulos del mismo producto."
+    },
+    {
+      "referenceCode": "037",
+      "sourceCode": 37,
+      "name": "Tangara en grama tenis",
+      "price": {
+        "amount": 695000,
+        "currency": "COP",
+        "unit": null,
+        "unitStatus": "POR_VERIFICAR",
+        "sourceNote": "incluye instal"
+      },
+      "source": {
+        "sheet": "sebas",
+        "range": "A39:D39"
+      },
+      "confirmedTechnicalData": {},
+      "content": {
+        "shortDescription": "Tangara elaborada con grama tipo tenis, disponible como solución instalada según la nota comercial.",
+        "description": "Referencia 037 correspondiente a una tangara en grama tenis. El Excel registra un precio de 695.000 COP e indica que incluye instalación; el alcance, las medidas, los materiales y la unidad comercial deben confirmarse antes de publicar o cotizar.",
+        "seoTitle": "Tangara en grama tenis | Decorgrass",
+        "metaDescription": "Consulta la referencia 037 de tangara en grama tenis. Precio registrado con instalación; alcance y especificaciones por confirmar.",
+        "alt": {
+          "application": "Tangara de colores instalada sobre una superficie de grama sintética"
+        }
+      },
+      "imageInventory": {
+        "status": "PARCIAL_SOLO_APLICACION",
+        "sourceFiles": [
+          "public/productos/tangara grama tennis/tangara grama tennis (1).jpeg",
+          "public/productos/tangara grama tennis/tangara grama tennis (2).jpeg",
+          "public/productos/tangara grama tennis/tangara grama tennis (3).jpeg",
+          "public/productos/tangara grama tennis/tangara grama tennis (4).jpeg",
+          "public/productos/tangara grama tennis/tangara grama tennis (5).jpeg"
+        ],
+        "warning": "Las fotos muestran instalacion o uso. No hay vistas aisladas superior y lateral del producto."
+      },
+      "mediaRoles": {
+        "principal": {
+          "status": "FALTA_CAPTURA_PRODUCTO",
+          "source": null
+        },
+        "profile": {
+          "status": "FALTA_CAPTURA_PRODUCTO",
+          "source": null
+        },
+        "texture": {
+          "status": "FALTA_CAPTURA_REAL",
+          "source": null
+        },
+        "applicationGallery": {
+          "status": "GALERIA_WEB_PENDIENTE_APROBACION",
+          "webp": "public/productos/catalogo/037/aplicacion.webp",
+          "avif": "public/productos/catalogo/037/aplicacion.avif",
+          "additionalWebp": [
+            "public/productos/catalogo/037/aplicacion-02.webp",
+            "public/productos/catalogo/037/aplicacion-03.webp",
+            "public/productos/catalogo/037/aplicacion-04.webp",
+            "public/productos/catalogo/037/aplicacion-05.webp"
+          ],
+          "additionalAvif": [
+            "public/productos/catalogo/037/aplicacion-02.avif",
+            "public/productos/catalogo/037/aplicacion-03.avif",
+            "public/productos/catalogo/037/aplicacion-04.avif",
+            "public/productos/catalogo/037/aplicacion-05.avif"
+          ],
+          "sources": [
+            "public/productos/tangara grama tennis/tangara grama tennis (1).jpeg",
+            "public/productos/tangara grama tennis/tangara grama tennis (2).jpeg",
+            "public/productos/tangara grama tennis/tangara grama tennis (3).jpeg",
+            "public/productos/tangara grama tennis/tangara grama tennis (4).jpeg",
+            "public/productos/tangara grama tennis/tangara grama tennis (5).jpeg"
+          ]
+        }
+      },
+      "certifications": [],
+      "certificationStatus": "POR_VERIFICAR",
+      "pending": [
+        "Confirmar unidad comercial y alcance exacto de la instalacion incluida.",
+        "Fotografiar el producto completo desde arriba.",
+        "Fotografiar el perfil y los bordes.",
+        "Grabar interaccion real de la mano con la superficie.",
+        "Confirmar medidas, materiales, garantia y condiciones de instalacion."
+      ],
+      "notes": "Las fotos actuales pueden usarse como galeria de aplicacion, no como evidencia tecnica del producto."
+    }
+  ]
+}

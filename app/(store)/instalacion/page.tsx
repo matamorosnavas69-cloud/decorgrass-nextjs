@@ -7,16 +7,16 @@ import { getWhatsAppContactURL } from "@/app/lib/utils";
 export const metadata: Metadata = {
   title: "Servicio de Instalación Profesional",
   description:
-    "Instalación profesional de grama sintética en toda Colombia. Equipo certificado, garantía incluida y materiales de primera calidad.",
+    "Servicio de instalación de grama sintética en Colombia, con alcance y materiales definidos según cada proyecto.",
 };
 
 const features = [
-  "Equipo de instaladores certificados y con experiencia",
-  "Preparación del terreno incluida",
-  "Materiales y fijaciones de calidad premium",
-  "Acabados perfectos en bordes y uniones",
-  "Limpieza del área al finalizar",
-  "Certificado de instalación y garantía por escrito",
+  "Asesoría para definir el alcance de instalación",
+  "Preparación del terreno según las condiciones del proyecto",
+  "Materiales y fijaciones especificados en la cotización",
+  "Acabado de bordes y uniones",
+  "Limpieza del área según el alcance contratado",
+  "Condiciones de servicio y garantía informadas por escrito cuando apliquen",
   "Seguimiento post-instalación",
   "Disponibilidad a nivel nacional",
 ];

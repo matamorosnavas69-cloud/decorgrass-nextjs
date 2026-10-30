@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence, useInView, animate } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, ChevronDown, Play } from "lucide-react";
 import { getWhatsAppContactURL } from "@/app/lib/utils";
 
@@ -21,7 +21,7 @@ const SLIDES: HeroSlide[] = [
     title: "Transforma tu espacio",
     highlight: "con grama sintética",
     description:
-      "Jardines, terrazas, balcones y canchas deportivas. Grama premium con instalación incluida y garantía de hasta 5 años.",
+      "Jardines, terrazas, balcones y canchas deportivas. Te orientamos sobre el producto y el alcance de instalación para cada proyecto.",
     href: "/cotizador",
     cta: "Cotizar mi proyecto",
   },
@@ -57,7 +57,7 @@ const SLIDES: HeroSlide[] = [
     title: "Canchas deportivas",
     highlight: "de nivel profesional",
     description:
-      "Grama certificada FIFA Quality Concept para fútbol, tenis, golf y más.",
+      "Opciones de grama para fútbol, tenis, golf y otros usos deportivos, sujetas a disponibilidad y ficha técnica.",
     href: "/catalogo?categoria=futbol",
     cta: "Ver grama deportiva",
   },
@@ -105,39 +105,6 @@ function HeroCarousel({ index }: { index: number }) {
         />
       </AnimatePresence>
     </>
-  );
-}
-
-const STATS = [
-  { value: 500, suffix: "+", label: "Proyectos Completados" },
-  { value: 100000, suffix: "+ m²", label: "Instalados" },
-  { value: 10, suffix: "+", label: "Años de Experiencia" },
-  { value: 100, suffix: "%", label: "Clientes Satisfechos" },
-];
-
-function StatCounter({ value, suffix, label }: (typeof STATS)[number]) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true, margin: "-40px" });
-  const [display, setDisplay] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    const controls = animate(0, value, {
-      duration: 1.6,
-      ease: "easeOut",
-      onUpdate: (v) => setDisplay(Math.round(v)),
-    });
-    return controls.stop;
-  }, [inView, value]);
-
-  return (
-    <div ref={ref} className="text-center">
-      <div className="text-3xl font-bold text-brand-primary sm:text-4xl">
-        {display.toLocaleString("es-CO")}
-        {suffix}
-      </div>
-      <div className="mt-1 text-sm text-stone-500">{label}</div>
-    </div>
   );
 }
 
@@ -261,7 +228,7 @@ export default function Hero() {
             <span className="text-grass-400">✓</span> Cotización gratuita
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="text-grass-400">✓</span> Garantía incluida
+            <span className="text-grass-400">✓</span> Condiciones informadas por proyecto
           </span>
         </motion.div>
       </div>
@@ -293,14 +260,6 @@ export default function Hero() {
       </motion.div>
     </div>
 
-      {/* Stats strip, overlapping the bottom edge */}
-      <div className="absolute inset-x-0 -bottom-10 z-20 hidden justify-center px-4 sm:flex">
-        <div className="grid w-full max-w-3xl grid-cols-4 gap-4 rounded-2xl bg-white p-6 shadow-2xl">
-          {STATS.map((s) => (
-            <StatCounter key={s.label} {...s} />
-          ))}
-        </div>
-      </div>
     </section>
   );
 }
