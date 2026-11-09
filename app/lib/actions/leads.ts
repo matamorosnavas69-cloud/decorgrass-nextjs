@@ -6,7 +6,7 @@ import { requirePermission } from "@/app/lib/authz";
 import { getProductBySlug } from "@/app/lib/queries/products";
 import { calculateQuote, formatCOP } from "@/app/lib/utils";
 import { notifyNewLead } from "@/app/lib/email";
-import { quoteLeadSchema, contactLeadSchema } from "@/app/lib/validations/lead";
+import { quoteLeadSchema, contactLeadSchema, landingLeadSchema } from "@/app/lib/validations/lead";
 import { LeadStatus } from "@prisma/client";
 
 export type LeadActionResult = { ok: true } | { ok: false; error: string };
@@ -86,6 +86,41 @@ export async function createContactLead(input: unknown): Promise<LeadActionResul
   } catch (e) {
     console.error("[leads] createContactLead error:", e);
     return { ok: false, error: "No se pudo enviar tu mensaje. Intenta de nuevo o escríbenos por WhatsApp." };
+  }
+}
+
+export async function createLandingLead(input: unknown): Promise<LeadActionResult> {
+  const parsed = landingLeadSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
+  }
+  const data = parsed.data;
+  if (data.company) return { ok: true }; // honeypot
+
+  try {
+    await prisma.lead.create({
+      data: {
+        name: data.name,
+        phone: data.phone,
+        city: data.city,
+        spaceType: data.interest,
+        squareMeters: data.squareMeters,
+        // ponytail: el consentimiento queda en notes; columna propia si hay que auditarlo.
+        notes: "Origen: formulario del landing · Autorizó tratamiento de datos",
+      },
+    });
+    await notifyNewLead({
+      kind: "contacto",
+      name: data.name,
+      phone: data.phone,
+      city: data.city,
+      spaceType: data.interest,
+      squareMeters: data.squareMeters,
+    });
+    return { ok: true };
+  } catch (e) {
+    console.error("[leads] createLandingLead error:", e);
+    return { ok: false, error: "No se pudo enviar tu solicitud. Intenta de nuevo o escríbenos por WhatsApp." };
   }
 }
 

@@ -29,6 +29,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const handler = () => setScrolledState(window.scrollY > 20);
+    handler(); // al recargar a media página o llegar con #ancla no hay evento scroll
     window.addEventListener("scroll", handler, { passive: true });
     return () => window.removeEventListener("scroll", handler);
   }, []);
@@ -52,7 +53,8 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop nav */}
-        <ul className="hidden items-center gap-1 lg:flex">
+        {/* xl y no lg: a 1024px los 6 enlaces se montaban sobre el logo */}
+        <ul className="hidden items-center gap-1 xl:flex">
           {navLinks.map((link) => (
             <li key={link.href}>
               <Link
@@ -91,7 +93,14 @@ export default function Navbar() {
             href={getWhatsAppContactURL()}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden items-center gap-1.5 rounded-full bg-[#25D366] px-4 py-2 text-sm font-semibold text-white transition-all hover:bg-[#1ebe57] hover:shadow-md sm:flex"
+            data-track="whatsapp_click"
+            data-section="navbar"
+            className={cn(
+              "hidden min-h-[40px] items-center gap-1.5 rounded-sm px-4 text-sm font-medium transition-colors sm:flex",
+              scrolled
+                ? "bg-brand-deep text-white hover:bg-brand-dark"
+                : "bg-white text-brand-deep hover:bg-brand-sand"
+            )}
           >
             <MessageCircle className="h-4 w-4" />
             WhatsApp
@@ -99,10 +108,10 @@ export default function Navbar() {
           <Link
             href="/cotizador"
             className={cn(
-              "hidden rounded-full px-4 py-2 text-sm font-semibold transition-all lg:block",
+              "hidden min-h-[40px] items-center rounded-sm border px-4 text-sm font-medium transition-colors lg:flex",
               scrolled
-                ? "bg-brand-primary text-white hover:bg-brand-dark"
-                : "bg-white text-brand-primary hover:bg-grass-50"
+                ? "border-brand-deep text-brand-deep hover:bg-brand-sand"
+                : "border-white/70 text-white hover:bg-white/10"
             )}
           >
             Cotizar
@@ -111,7 +120,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Menú"
             className={cn(
-              "flex h-9 w-9 items-center justify-center rounded-full transition-colors lg:hidden",
+              "flex h-9 w-9 items-center justify-center rounded-full transition-colors xl:hidden",
               scrolled ? "text-stone-800 hover:bg-stone-100" : "text-white hover:bg-white/10"
             )}
           >
@@ -127,7 +136,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-stone-100 bg-white shadow-lg lg:hidden"
+            className="border-t border-stone-100 bg-white shadow-lg xl:hidden"
           >
             <div className="container-max space-y-1 px-4 py-4 sm:px-6">
               {navLinks.map((link) => (

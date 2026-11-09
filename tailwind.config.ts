@@ -25,6 +25,8 @@ const config: Config = {
           primary:  "#2E7D32",
           light:    "#4CAF50",
           dark:     "#1B5E20",
+          deep:     "#0C3833", // fondo del logo
+          lime:     "#74C229", // la G del logo; solo acentos pequeños
           accent:   "#8BC34A",
           terra:    "#795548",
           sand:     "#F5F0E8",
