@@ -15,7 +15,8 @@ interface ProductDetailsProps {
 export default function ProductDetails({ product }: ProductDetailsProps) {
   const { toggle, has } = useWishlist();
   const wished = has(product.id);
-  const hasVerifiedUnit = product.priceUnitStatus !== "POR_VERIFICAR";
+  const hasRegisteredPrice = product.pricePerM2 > 0;
+  const hasVerifiedUnit = product.priceUnitStatus !== "POR_VERIFICAR" && hasRegisteredPrice;
 
   const [selectedColor, setSelectedColor] = useState(product.availableColors[0] || "");
   const [selectedHeight, setSelectedHeight] = useState(product.availableHeights[0] || "");
@@ -60,13 +61,20 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       {/* Price */}
       <div className="flex items-baseline gap-2">
         <span className="text-4xl font-bold text-brand-primary">
-          {formatCOP(product.pricePerM2)}
+          {hasRegisteredPrice ? formatCOP(product.pricePerM2) : "Consultar precio"}
         </span>
-        <span className="text-stone-400">{hasVerifiedUnit ? "/ m²" : "precio registrado"}</span>
+        {hasRegisteredPrice && (
+          <span className="text-stone-400">{hasVerifiedUnit ? "/ m²" : "precio registrado"}</span>
+        )}
       </div>
-      {!hasVerifiedUnit && (
+      {hasRegisteredPrice && !hasVerifiedUnit && (
         <p className="-mt-4 text-sm font-medium text-amber-700">
           Unidad comercial y alcance por confirmar antes de cotizar.
+        </p>
+      )}
+      {!hasRegisteredPrice && (
+        <p className="-mt-4 text-sm font-medium text-amber-700">
+          Precio, unidad comercial y alcance por confirmar antes de cotizar.
         </p>
       )}
 

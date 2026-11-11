@@ -1,6 +1,8 @@
 import type { GrassProduct } from "@/app/lib/data";
+import { newCatalogProducts } from "@/app/lib/catalog/new-products";
 
 export const pilotProducts: GrassProduct[] = [
+  ...newCatalogProducts,
   {
     id: "catalog-reference-003",
     referenceCode: "003",
