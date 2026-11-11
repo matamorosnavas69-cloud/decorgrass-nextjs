@@ -35,7 +35,8 @@ const categoryIcons: Record<GrassCategory, string> = {
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const { toggle, has } = useWishlist();
   const wished = has(product.id);
-  const hasVerifiedUnit = product.priceUnitStatus !== "POR_VERIFICAR";
+  const hasRegisteredPrice = product.pricePerM2 > 0;
+  const hasVerifiedUnit = product.priceUnitStatus !== "POR_VERIFICAR" && hasRegisteredPrice;
 
   const whatsappURL = buildWhatsAppURL({
     productName: product.name,
@@ -127,14 +128,19 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           <div className="mt-auto">
             <div className="mb-3 flex items-baseline gap-1">
               <span className="text-xl font-bold text-brand-primary">
-                {formatCOP(product.pricePerM2)}
+                {hasRegisteredPrice ? formatCOP(product.pricePerM2) : "Consultar precio"}
               </span>
-              <span className="text-xs text-stone-400">
-                {hasVerifiedUnit ? "/ m²" : "precio registrado"}
-              </span>
+              {hasRegisteredPrice && (
+                <span className="text-xs text-stone-400">
+                  {hasVerifiedUnit ? "/ m²" : "precio registrado"}
+                </span>
+              )}
             </div>
-            {!hasVerifiedUnit && (
+            {hasRegisteredPrice && !hasVerifiedUnit && (
               <p className="mb-3 text-xs font-medium text-amber-700">Unidad comercial por confirmar</p>
+            )}
+            {!hasRegisteredPrice && (
+              <p className="mb-3 text-xs font-medium text-amber-700">Precio y unidad comercial por confirmar</p>
             )}
 
             <div className="flex gap-2">

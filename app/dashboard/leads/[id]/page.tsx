@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requirePermission } from "@/app/lib/authz";
+import { hasPermission } from "@/app/lib/rbac";
 import { notFound } from "next/navigation";
 import { ArrowLeft, MessageCircle, Mail, Ruler, MapPin, Calendar } from "lucide-react";
 import { prisma } from "@/app/lib/db";
@@ -14,6 +16,8 @@ interface PageProps {
 }
 
 export default async function LeadDetailPage({ params }: PageProps) {
+  const { role } = await requirePermission("leads:read");
+  const canWrite = hasPermission(role, "leads:write");
   const { id } = await params;
   const lead = await prisma.lead.findUnique({ where: { id }, include: { product: true } });
   if (!lead) notFound();
@@ -36,7 +40,7 @@ export default async function LeadDetailPage({ params }: PageProps) {
             {lead.createdAt.toLocaleDateString("es-CO", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
           </p>
         </div>
-        <LeadStatusSelect leadId={lead.id} status={lead.status} />
+        <LeadStatusSelect leadId={lead.id} status={lead.status} readOnly={!canWrite} />
       </div>
 
       <div className="grid gap-6 sm:grid-cols-2">
@@ -89,7 +93,11 @@ export default async function LeadDetailPage({ params }: PageProps) {
 
       <div className="mt-6 bg-white rounded-2xl border border-stone-200 p-5">
         <h2 className="mb-3 text-sm font-semibold text-stone-900">Notas internas</h2>
-        <NotesForm leadId={lead.id} initialNotes={lead.notes ?? ""} />
+        {canWrite ? (
+          <NotesForm leadId={lead.id} initialNotes={lead.notes ?? ""} />
+        ) : (
+          <p className="whitespace-pre-wrap text-sm text-stone-600">{lead.notes || "Sin notas."}</p>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "status": "INTEGRADO_LOCAL_PENDIENTE_DESPLIEGUE",
+  "asOfDate": "2026-11-10",
+  "sourceWorkbook": {
+    "name": "LISTA DE PRECIOS SEBAS.xlsx",
+    "sheet": "sebas"
+  },
+  "products": [
+    {
+      "referenceCode": "001",
+      "sourceRange": "A3:D3",
+      "sourceImages": ["1.DNG", "1.1.DNG", "1.2.DNG"],
+      "media": [
+        "public/productos/catalogo/001/principal.webp",
+        "public/productos/catalogo/001/perfil.webp",
+        "public/productos/catalogo/001/textura.webp"
+      ],
+      "certificationStatus": "POR_VERIFICAR"
+    },
+    {
+      "referenceCode": "006",
+      "sourceRange": "A8:D8",
+      "sourceImages": ["6.DNG", "6.1.DNG"],
+      "media": [
+        "public/productos/catalogo/006/principal.webp",
+        "public/productos/catalogo/006/perfil.webp"
+      ],
+      "textureMediaStatus": "FALTA_CAPTURA_REAL",
+      "certificationStatus": "POR_VERIFICAR"
+    },
+    {
+      "referenceCode": "010",
+      "sourceRange": "A12:D12",
+      "sourceImages": ["10.DNG", "10.1.DNG", "10.2.DNG"],
+      "media": [
+        "public/productos/catalogo/010/principal.webp",
+        "public/productos/catalogo/010/perfil.webp",
+        "public/productos/catalogo/010/textura.webp"
+      ],
+      "certificationStatus": "POR_VERIFICAR"
+    },
+    {
+      "referenceCode": "012",
+      "sourceRange": "A14:D14",
+      "sourceImages": ["12.DNG", "12.1.DNG", "12.2.DNG"],
+      "media": [
+        "public/productos/catalogo/012/principal.webp",
+        "public/productos/catalogo/012/perfil.webp",
+        "public/productos/catalogo/012/textura.webp"
+      ],
+      "certificationStatus": "POR_VERIFICAR"
+    },
+    {
+      "referenceCode": "017",
+      "sourceRange": "A19:D19",
+      "sourceImages": ["17.DNG", "17.1.DNG", "17.2.DNG", "17.3.DNG", "17.4.DNG", "17.5.DNG", "17.6.DNG"],
+      "duplicateSources": ["17.DNG", "17.2.DNG"],
+      "media": [
+        "public/productos/catalogo/017/principal-amarillo.webp",
+        "public/productos/catalogo/017/perfil-amarillo.webp",
+        "public/productos/catalogo/017/detalle-amarillo.webp",
+        "public/productos/catalogo/017/principal-fucsia.webp",
+        "public/productos/catalogo/017/perfil-fucsia.webp",
+        "public/productos/catalogo/017/textura-fucsia.webp"
+      ],
+      "certificationStatus": "POR_VERIFICAR"
+    },
+    {
+      "referenceCode": "027",
+      "sourceRange": "A29:D29",
+      "sourceImages": ["27.DNG", "27.1.DNG", "27.2.DNG"],
+      "duplicateSources": ["27.1.DNG", "27.2.DNG"],
+      "media": [
+        "public/productos/catalogo/027/principal.webp",
+        "public/productos/catalogo/027/perfil.webp"
+      ],
+      "textureMediaStatus": "FALTA_CAPTURA_REAL",
+      "certificationStatus": "POR_VERIFICAR"
+    },
+    {
+      "referenceCode": "044",
+      "sourceRange": "A46:D46",
+      "sourceImages": ["44.DNG", "44.1.DNG"],
+      "media": [
+        "public/productos/catalogo/044/principal.webp",
+        "public/productos/catalogo/044/perfil.webp"
+      ],
+      "priceStatus": "POR_VERIFICAR",
+      "textureMediaStatus": "FALTA_CAPTURA_REAL",
+      "certificationStatus": "POR_VERIFICAR"
+    }
+  ],
+  "deferred": {
+    "referenceCode": "071",
+    "sourceRange": "A73:D73",
+    "sourceImages": ["71.DNG", "71.1.DNG", "71.3.DNG"],
+    "preparedMedia": [
+      "public/productos/catalogo/071/principal.webp",
+      "public/productos/catalogo/071/perfil.webp",
+      "public/productos/catalogo/071/detalle.webp"
+    ],
+    "reason": "La fila 071 no contiene nombre, precio ni descripción comercial. Los medios quedan preparados, pero la referencia no se publica como producto hasta confirmar su identidad."
+  },
+  "editingPolicy": "Edición conservadora de fondo, exposición, encuadre y sombra. La fotografía de origen gobierna color, textura, geometría, respaldo y proporciones.",
+  "pending": [
+    "Confirmar la identidad comercial de la referencia 071.",
+    "Capturar video o GIF real de una mano interactuando con cada muestra.",
+    "Asignar certificaciones por referencia cuando se reciba la matriz documental.",
+    "Confirmar la unidad comercial de cada precio y el precio de la referencia 044."
+  ]
+}

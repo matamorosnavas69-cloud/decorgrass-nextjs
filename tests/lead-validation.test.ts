@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { quoteLeadSchema, contactLeadSchema } from "../app/lib/validations/lead.ts";
+import { quoteLeadSchema, contactLeadSchema, landingLeadSchema } from "../app/lib/validations/lead.ts";
 
 // Esto es lo único que se interpone entre un formulario público y un
 // INSERT en Postgres — si la validación falla en falso positivo o falso
@@ -69,4 +69,17 @@ test("contactLeadSchema: acepta un contacto válido", () => {
     message: "Quiero cotizar grama para una terraza de 30 metros en Bogotá.",
   });
   assert.equal(result.success, true);
+});
+
+test("landingLeadSchema: acepta el formulario del landing, con y sin metros", () => {
+  const base = { name: "Paola Ruiz", phone: "3208523041", interest: "Parque infantil", city: "Cali", consent: true };
+  assert.equal(landingLeadSchema.safeParse(base).success, true);
+  assert.equal(landingLeadSchema.safeParse({ ...base, squareMeters: 120 }).success, true);
+});
+
+test("landingLeadSchema: sin consentimiento o con producto inventado no pasa", () => {
+  const base = { name: "Paola Ruiz", phone: "3208523041", interest: "Parque infantil", city: "Cali", consent: true };
+  assert.equal(landingLeadSchema.safeParse({ ...base, consent: false }).success, false);
+  assert.equal(landingLeadSchema.safeParse({ ...base, interest: "Piscinas" }).success, false);
+  assert.equal(landingLeadSchema.safeParse({ ...base, squareMeters: 0 }).success, false);
 });

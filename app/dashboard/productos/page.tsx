@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requirePermission } from "@/app/lib/authz";
+import { hasPermission } from "@/app/lib/rbac";
 import { Plus } from "lucide-react";
 import { getAllProducts } from "@/app/lib/queries/products";
 import { formatCOP } from "@/app/lib/utils";
@@ -8,6 +10,8 @@ import ToggleAvailabilityButton from "./ToggleAvailabilityButton";
 export const metadata: Metadata = { title: "Productos — Dashboard" };
 
 export default async function ProductosPage() {
+  const { role } = await requirePermission("products:read");
+  const canWrite = hasPermission(role, "products:write");
   const products = await getAllProducts();
 
   return (
@@ -17,9 +21,11 @@ export default async function ProductosPage() {
           <h1 className="text-2xl font-bold text-stone-900">Productos</h1>
           <p className="text-stone-500 text-sm mt-1">{products.length} en catálogo</p>
         </div>
-        <Link href="/dashboard/productos/nuevo" className="btn-primary gap-1.5 py-2.5 text-sm">
-          <Plus className="h-4 w-4" /> Añadir producto
-        </Link>
+        {canWrite && (
+          <Link href="/dashboard/productos/nuevo" className="btn-primary gap-1.5 py-2.5 text-sm">
+            <Plus className="h-4 w-4" /> Añadir producto
+          </Link>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-stone-200 overflow-hidden">
@@ -43,12 +49,18 @@ export default async function ProductosPage() {
                   <td className="px-6 py-3 text-stone-700">{formatCOP(p.pricePerM2)}</td>
                   <td className="px-6 py-3 text-stone-500">{p.featured ? "Sí" : "—"}</td>
                   <td className="px-6 py-3">
-                    <ToggleAvailabilityButton id={p.id} available={p.available} />
+                    {canWrite ? (
+                      <ToggleAvailabilityButton id={p.id} available={p.available} />
+                    ) : (
+                      <span className="text-xs text-stone-600">{p.available ? "Disponible" : "Agotado"}</span>
+                    )}
                   </td>
                   <td className="px-6 py-3 text-right">
-                    <Link href={`/dashboard/productos/${p.id}`} className="text-brand-primary hover:underline text-xs font-medium">
-                      Editar
-                    </Link>
+                    {canWrite && (
+                      <Link href={`/dashboard/productos/${p.id}`} className="text-brand-primary hover:underline text-xs font-medium">
+                        Editar
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}

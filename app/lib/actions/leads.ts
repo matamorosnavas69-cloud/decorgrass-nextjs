@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/app/lib/db";
-import { requireAdmin } from "@/app/lib/auth";
+import { requirePermission } from "@/app/lib/authz";
 import { getProductBySlug } from "@/app/lib/queries/products";
 import { calculateQuote, formatCOP } from "@/app/lib/utils";
 import { notifyNewLead } from "@/app/lib/email";
-import { quoteLeadSchema, contactLeadSchema } from "@/app/lib/validations/lead";
+import { quoteLeadSchema, contactLeadSchema, landingLeadSchema } from "@/app/lib/validations/lead";
 import { LeadStatus } from "@prisma/client";
 
 export type LeadActionResult = { ok: true } | { ok: false; error: string };
@@ -89,10 +89,45 @@ export async function createContactLead(input: unknown): Promise<LeadActionResul
   }
 }
 
+export async function createLandingLead(input: unknown): Promise<LeadActionResult> {
+  const parsed = landingLeadSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
+  }
+  const data = parsed.data;
+  if (data.company) return { ok: true }; // honeypot
+
+  try {
+    await prisma.lead.create({
+      data: {
+        name: data.name,
+        phone: data.phone,
+        city: data.city,
+        spaceType: data.interest,
+        squareMeters: data.squareMeters,
+        // ponytail: el consentimiento queda en notes; columna propia si hay que auditarlo.
+        notes: "Origen: formulario del landing · Autorizó tratamiento de datos",
+      },
+    });
+    await notifyNewLead({
+      kind: "contacto",
+      name: data.name,
+      phone: data.phone,
+      city: data.city,
+      spaceType: data.interest,
+      squareMeters: data.squareMeters,
+    });
+    return { ok: true };
+  } catch (e) {
+    console.error("[leads] createLandingLead error:", e);
+    return { ok: false, error: "No se pudo enviar tu solicitud. Intenta de nuevo o escríbenos por WhatsApp." };
+  }
+}
+
 /* ── Acciones de admin (requieren sesión) ──────────────────────── */
 
 export async function updateLeadStatus(id: string, status: LeadStatus): Promise<void> {
-  await requireAdmin();
+  await requirePermission("leads:write");
   await prisma.lead.update({ where: { id }, data: { status } });
   revalidatePath("/dashboard/leads");
   revalidatePath(`/dashboard/leads/${id}`);
@@ -100,7 +135,7 @@ export async function updateLeadStatus(id: string, status: LeadStatus): Promise<
 }
 
 export async function updateLeadNotes(id: string, notes: string): Promise<void> {
-  await requireAdmin();
+  await requirePermission("leads:write");
   await prisma.lead.update({ where: { id }, data: { notes } });
   revalidatePath(`/dashboard/leads/${id}`);
 }

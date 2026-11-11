@@ -93,6 +93,88 @@
   .skeleton {
     @apply animate-pulse rounded bg-stone-200;
   }
+
+  /* ── Landing: secciones hero a pantalla completa ───────────────── */
+  .hero {
+    /* pb-24: deja libre la esquina del botón flotante de WhatsApp */
+    /* bg-brand-deep: mientras carga la foto el texto blanco sigue legible */
+    @apply relative flex min-h-[100svh] overflow-hidden bg-brand-deep px-5 pb-24 pt-24 text-white sm:px-8 lg:px-[4.5rem] lg:pt-28;
+  }
+
+  .hero-eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.2em] sm:text-xs;
+  }
+
+  .hero-title {
+    @apply text-balance text-[2.125rem] font-normal leading-[1.06] tracking-[-0.025em] sm:text-5xl lg:text-[3.875rem];
+  }
+
+  .hero-lead {
+    @apply text-base leading-relaxed lg:text-[17px];
+  }
+
+  .btn-hero {
+    @apply inline-flex min-h-[54px] items-center justify-center gap-3 rounded-sm bg-white px-7 text-[15px] font-medium text-brand-deep transition-colors duration-200 hover:bg-brand-sand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white;
+  }
+
+  .btn-hero-dark {
+    @apply inline-flex min-h-[54px] items-center justify-center gap-3 rounded-sm bg-brand-deep px-7 text-[15px] font-medium text-white transition-colors duration-200 hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-deep disabled:opacity-60;
+  }
+
+  .link-hero {
+    @apply inline-flex min-h-[44px] items-center gap-2 text-[15px] font-medium underline decoration-1 underline-offset-8 transition-opacity duration-200 hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-current;
+  }
+
+  /* Velos: solo lo necesario para que el texto se lea sobre la foto */
+  .veil {
+    @apply pointer-events-none absolute inset-0;
+  }
+
+  .veil-b {
+    background-image:
+      linear-gradient(0deg, rgb(12 56 51 / 0.95) 0%, rgb(12 56 51 / 0.72) 36%, rgb(12 56 51 / 0) 66%),
+      linear-gradient(180deg, rgb(12 56 51 / 0.6) 0%, rgb(12 56 51 / 0) 20%);
+  }
+
+  /* base alta: para móvil, cuando el texto ocupa casi toda la pantalla */
+  .veil-b-tall {
+    background-image: linear-gradient(0deg, rgb(12 56 51 / 0.95) 0%, rgb(12 56 51 / 0.8) 45%, rgb(12 56 51 / 0.58) 72%, rgb(12 56 51 / 0.3) 100%);
+  }
+
+  .veil-tb {
+    background-image:
+      linear-gradient(180deg, rgb(12 56 51 / 0.86) 0%, rgb(12 56 51 / 0.64) 36%, rgb(12 56 51 / 0) 62%),
+      linear-gradient(0deg, rgb(12 56 51 / 0.9) 0%, rgb(12 56 51 / 0.5) 26%, rgb(12 56 51 / 0) 44%);
+  }
+
+  .veil-l {
+    background-image:
+      linear-gradient(90deg, rgb(12 56 51 / 0.84) 0%, rgb(12 56 51 / 0.58) 40%, rgb(12 56 51 / 0) 72%),
+      linear-gradient(180deg, rgb(12 56 51 / 0.62) 0%, rgb(12 56 51 / 0) 24%);
+  }
+
+  /* izquierda + base: texto arriba a la izquierda y fila de beneficios/CTA abajo */
+  .veil-lb {
+    background-image:
+      linear-gradient(90deg, rgb(12 56 51 / 0.84) 0%, rgb(12 56 51 / 0.56) 36%, rgb(12 56 51 / 0) 66%),
+      linear-gradient(0deg, rgb(12 56 51 / 0.88) 0%, rgb(12 56 51 / 0.45) 24%, rgb(12 56 51 / 0) 42%);
+  }
+
+  .veil-r {
+    background-image: linear-gradient(270deg, rgb(9 34 38 / 0.9) 0%, rgb(9 34 38 / 0.66) 34%, rgb(9 34 38 / 0) 62%);
+  }
+
+  .veil-light {
+    background-image: linear-gradient(180deg, rgb(245 240 232 / 0.94) 0%, rgb(245 240 232 / 0.86) 46%, rgb(245 240 232 / 0) 76%);
+  }
+
+  .field-line {
+    @apply block min-h-[44px] w-full rounded-none border-0 border-b border-brand-deep bg-transparent p-0 text-base text-brand-deep placeholder:text-stone-500 focus:border-brand-primary focus:outline-none focus:ring-0 focus-visible:border-b-2;
+  }
+
+  .field-label {
+    @apply mb-1 block text-xs font-medium uppercase tracking-[0.14em] text-[#37524c];
+  }
 }
 
 @layer utilities {

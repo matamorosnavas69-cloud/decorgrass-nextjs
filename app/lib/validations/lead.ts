@@ -26,5 +26,30 @@ export const contactLeadSchema = z.object({
   company: honeypot,
 });
 
+// Formulario del landing: lo mínimo para una cotización inicial.
+export const LANDING_INTERESTS = [
+  "Grama decorativa",
+  "Parque infantil",
+  "Grama deportiva",
+  "Tapetes y atrapamugres",
+  "Otro",
+] as const;
+
+export const landingLeadSchema = z.object({
+  name: z.string().trim().min(2, "Nombre requerido"),
+  phone: z.string().trim().min(7, "Teléfono válido requerido"),
+  interest: z.enum(LANDING_INTERESTS, "Selecciona un producto"),
+  city: z.string().trim().min(1, "Ciudad requerida"),
+  squareMeters: z
+    .number("Indica un número")
+    .positive("Los metros cuadrados deben ser mayores a 0")
+    .max(100000, "Máximo 100.000 m²")
+    .optional(),
+  // boolean + refine (no literal(true)) para que el formulario pueda arrancar en false
+  consent: z.boolean().refine((v) => v, "Debes autorizar el tratamiento de tus datos"),
+  company: honeypot,
+});
+
+export type LandingLeadInput = z.infer<typeof landingLeadSchema>;
 export type QuoteLeadInput = z.infer<typeof quoteLeadSchema>;
 export type ContactLeadInput = z.infer<typeof contactLeadSchema>;

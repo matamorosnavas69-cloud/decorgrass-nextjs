@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { requireRole } from "@/app/lib/authz";
 import { MessageSquare, Package, FolderOpen, TrendingUp, ArrowRight, Clock } from "lucide-react";
 import { prisma } from "@/app/lib/db";
 
@@ -32,6 +33,7 @@ function timeAgo(date: Date): string {
 }
 
 export default async function DashboardPage() {
+  await requireRole();
   const [productCount, projectCount, newLeadsCount, totalLeadsCount, recentLeads] = await Promise.all([
     prisma.grassProduct.count(),
     prisma.project.count({ where: { published: true } }),
